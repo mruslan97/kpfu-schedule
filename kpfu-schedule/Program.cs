@@ -8,6 +8,7 @@ using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using kpfu_schedule.Jobs;
 using nQuant;
 using SelectPdf;
 using Telegram.Bot;
@@ -27,6 +28,7 @@ namespace kpfu_schedule
         private static readonly MessageHandler MessageHandler = new MessageHandler();
         static void Main(string[] args)
         {
+            MessageScheduler.Start();
             Bot.OnMessage += BotOnMessageReceived;
             Bot.OnMessageEdited += BotOnMessageReceived;
             Bot.OnReceiveError += BotOnReceiveError;
@@ -39,6 +41,7 @@ namespace kpfu_schedule
             Console.WriteLine($"Start listening for @{me.Username}");
             Console.ReadLine();
             Bot.StopReceiving();
+            
         }
 
         private static async void BotOnMessageReceived(object sender, MessageEventArgs messageEventArgs)
