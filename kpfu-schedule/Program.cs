@@ -8,6 +8,7 @@ using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using HtmlAgilityPack;
 using kpfu_schedule.Jobs;
 using nQuant;
 using SelectPdf;
@@ -28,20 +29,15 @@ namespace kpfu_schedule
         private static readonly MessageHandler MessageHandler = new MessageHandler();
         static void Main(string[] args)
         {
-            MessageScheduler.Start();
+            //ParseHtml();
+            //MessageScheduler.Start();
             Bot.OnMessage += BotOnMessageReceived;
             Bot.OnMessageEdited += BotOnMessageReceived;
             Bot.OnReceiveError += BotOnReceiveError;
-
-            var me = Bot.GetMeAsync().Result;
-
-            Console.Title = me.Username;
-
             Bot.StartReceiving();
-            Console.WriteLine($"Start listening for @{me.Username}");
+            Console.WriteLine($"Start listening");
             Console.ReadLine();
             Bot.StopReceiving();
-            
         }
 
         private static async void BotOnMessageReceived(object sender, MessageEventArgs messageEventArgs)
@@ -49,7 +45,7 @@ namespace kpfu_schedule
             var message = messageEventArgs.Message;
             //var messageHadler = new MessageHandler();
             if (message == null || message.Type != MessageType.TextMessage) return;
-            MessageHandler.SortInputMessage(message);
+            await Task.Run(() => MessageHandler.SortInputMessage(message));
         }
 
         private static void BotOnReceiveError(object sender, ReceiveErrorEventArgs receiveErrorEventArgs)
