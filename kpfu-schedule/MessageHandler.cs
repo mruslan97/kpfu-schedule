@@ -103,7 +103,7 @@ namespace kpfu_schedule
             doc.Save($"tmpPdf/{chatId}.pdf");
             var fs = new MemoryStream(File.ReadAllBytes($"tmpPdf/{chatId}.pdf"));
             var fileToSend = new FileToSend($"Расписание.pdf", fs);
-            await Bot.SendDocumentAsync(chatId, fileToSend, "Лови расписание ;)");
+            await Bot.SendDocumentAsync(chatId, fileToSend);
             Console.WriteLine($"sended, elapsed {stopWatch.Elapsed}");
             var file = new FileInfo($"tmpPdf/{chatId}.pdf");
             file.Delete();
@@ -124,7 +124,7 @@ namespace kpfu_schedule
             Console.WriteLine($"Compressed, elapsed {stopWatch.Elapsed}");
             var fs = new MemoryStream(File.ReadAllBytes($"tmpPng/{chatId}.png"));
             var fileToSend = new FileToSend($"Расписание.png", fs);
-            await Bot.SendPhotoAsync(chatId, fileToSend, "Лови расписание ;)");
+            await Bot.SendPhotoAsync(chatId, fileToSend);
             Console.WriteLine($"sended, elapsed {stopWatch.Elapsed}");
             var file = new FileInfo($"tmpPng/{chatId}.png");
             file.Delete();
@@ -150,7 +150,7 @@ namespace kpfu_schedule
             }
             var fs = new MemoryStream(File.ReadAllBytes($"tmpPng/{chatId}today.png"));
             var fileToSend = new FileToSend($"Расписание на сегодня.png", fs);
-            await Bot.SendPhotoAsync(chatId, fileToSend, "Лови расписание ;)");
+            await Bot.SendPhotoAsync(chatId, fileToSend);
             var file = new FileInfo($"tmpPng/{chatId}today.png");
             file.Delete();
         }

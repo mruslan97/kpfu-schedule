@@ -28,8 +28,11 @@ namespace kpfu_schedule
                     tmp.Add(tdNodes[day]);
                 }
                 row.ChildNodes.Clear();
-                row.ChildNodes.Add(tmp[0]);
-                row.ChildNodes.Add(tmp[1]);
+                if (!tmp[1].InnerHtml.Contains("&nbsp;"))
+                {
+                    row.ChildNodes.Add(tmp[0]);
+                    row.ChildNodes.Add(tmp[1]);
+                }
             }
             return doc.DocumentNode.InnerHtml.Replace("width:956px;",String.Empty).Replace("td{ width:143px;}", "td{ width:200px;}");
         }
