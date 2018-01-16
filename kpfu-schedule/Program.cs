@@ -29,7 +29,6 @@ namespace kpfu_schedule
         private static readonly MessageHandler MessageHandler = new MessageHandler();
         static void Main(string[] args)
         {
-            //ParseHtml();
             //MessageScheduler.Start();
             Bot.OnMessage += BotOnMessageReceived;
             Bot.OnMessageEdited += BotOnMessageReceived;
@@ -43,7 +42,6 @@ namespace kpfu_schedule
         private static async void BotOnMessageReceived(object sender, MessageEventArgs messageEventArgs)
         {
             var message = messageEventArgs.Message;
-            //var messageHadler = new MessageHandler();
             if (message == null || message.Type != MessageType.TextMessage) return;
             await Task.Run(() => MessageHandler.SortInputMessage(message));
         }
