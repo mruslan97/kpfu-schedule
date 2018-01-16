@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-using System.Security.Policy;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+using kpfu_schedule.Models;
 using nQuant;
 using SelectPdf;
 using Telegram.Bot;
@@ -24,14 +22,12 @@ namespace kpfu_schedule
         private HtmlToPdf _converterHtmlToPdf;
         private HtmlToImage _converterHtmlToImage;
         private HtmlParser _htmlParser;
-        private Dictionary<long,string> _users;
 
         public MessageHandler()
         {
             _converterHtmlToPdf = new HtmlToPdf();
             _converterHtmlToImage = new HtmlToImage();
             _htmlParser = new HtmlParser();
-            _users = new Dictionary<long, string>();
         }
         public async void SortInputMessage(Message message)
         {
@@ -44,7 +40,7 @@ namespace kpfu_schedule
                     ChangeGroupAnswer(message.Chat.Id);
                     break;
                 case "на сегодня":
-                    OneDayAnswer(message.Chat.Id,true);
+                    OneDayAnswer(message.Chat.Id, true);
                     break;
                 case "на завтра":
                     OneDayAnswer(message.Chat.Id, false);
@@ -58,7 +54,7 @@ namespace kpfu_schedule
                 default:
                     //var regex = new Regex(@"\d{2}-\d{3}");
                     //if (regex.IsMatch(message.Text) && message.Text.Length == 6)
-                    if(message.Text.Length == 6 || message.Text.Length == 8)
+                    if (message.Text.Length == 6 || message.Text.Length == 8)
                         VerificationAnswer(message.Text, message.Chat.Id);
                     else
                         await Bot.SendTextMessageAsync(message.Chat.Id,
@@ -74,15 +70,26 @@ namespace kpfu_schedule
             await Bot.SendStickerAsync(chat.Id, sticker);
             await Bot.SendTextMessageAsync(chat.Id,
                 $"Привет, {chat.FirstName}! Введи номер своей группы в формате **-***");
+            using (var db = new TgUsersContext())
+            {
+                db.Users.AddIfNotExists(new TgUser
+                {
+                    ChatId = chat.Id,
+                    Username = chat.Username,
+                    FirstName = chat.FirstName,
+                    LastName = chat.LastName
+                });
+                await db.SaveChangesAsync();
+            }
         }
 
         private async void VerificationAnswer(string group, long chatId)
         {
-            if(!_users.ContainsKey(chatId))
-            _users.Add(chatId,group);
-            else
+            using (var db = new TgUsersContext())
             {
-                _users[chatId] = group;
+                var user = await db.Users.SingleOrDefaultAsync(u => u.ChatId == chatId);
+                user.Group = group;
+                await db.SaveChangesAsync();
             }
             var keyboard = new ReplyKeyboardMarkup(new[]
             {
@@ -96,7 +103,12 @@ namespace kpfu_schedule
         private async void GetPdf(long chatId)
         {
             var stopWatch = new Stopwatch();
-            var group = _users[chatId];
+            string group = "";
+            using (var db = new TgUsersContext())
+            {
+                var user = await db.Users.SingleOrDefaultAsync(u => u.ChatId == chatId);
+                group = user.Group;
+            }
             stopWatch.Start();
             var doc = _converterHtmlToPdf.ConvertUrl($"https://kpfu.ru/week_sheadule_print?p_group_name={group}");
             Console.WriteLine($"Converted to pdf elapsed {stopWatch.Elapsed}");
@@ -112,7 +124,12 @@ namespace kpfu_schedule
         private async void GetPng(long chatId)
         {
             var stopWatch = new Stopwatch();
-            var group = _users[chatId];
+            string group = "";
+            using (var db = new TgUsersContext())
+            {
+                var user = await db.Users.SingleOrDefaultAsync(u => u.ChatId == chatId);
+                group = user.Group;
+            }
             stopWatch.Start();
             var image = _converterHtmlToImage.ConvertUrl($"https://kpfu.ru/week_sheadule_print?p_group_name={group}");
             Console.WriteLine($"Converted to image elapsed {stopWatch.Elapsed}");
@@ -139,8 +156,14 @@ namespace kpfu_schedule
         {
             var day = isToday 
                 ? Convert.ToInt32(DateTime.Today.DayOfWeek)
-                : Convert.ToInt32(DateTime.Today.DayOfWeek) + 1;  
-            var htmlDocument = _htmlParser.GetDay(_users[chatId], day);
+                : Convert.ToInt32(DateTime.Today.DayOfWeek) + 1;
+            string group = "";
+            using (var db = new TgUsersContext())
+            {
+                var user = await db.Users.SingleOrDefaultAsync(u => u.ChatId == chatId);
+                group = user.Group;
+            }
+            var htmlDocument = _htmlParser.GetDay(group, day);
             _converterHtmlToImage.WebPageWidth = 400;
             var image = _converterHtmlToImage.ConvertHtmlString(htmlDocument);
             var quantizer = new WuQuantizer();

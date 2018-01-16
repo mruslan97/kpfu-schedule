@@ -13,10 +13,4 @@ namespace kpfu_schedule
         public string Subject { get; set; }
         public string Auditorium { get; set; }
     }
-
-    public class User
-    {
-        public long ChatId { get; set; }
-        public string Group { get; set; }
-    }
 }
