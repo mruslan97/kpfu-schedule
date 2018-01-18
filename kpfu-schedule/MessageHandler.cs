@@ -4,6 +4,7 @@ using System.Data.Entity;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using kpfu_schedule.Models;
@@ -133,19 +134,13 @@ namespace kpfu_schedule
             }
             stopWatch.Start();
             var image = _converterHtmlToImage.ConvertUrl($"https://kpfu.ru/week_sheadule_print?p_group_name={group}");
+            image.Save($"tmpPng/{chatId}.png",ImageFormat.Png);
             Console.WriteLine($"Converted to image elapsed {stopWatch.Elapsed}");
-            var quantizer = new WuQuantizer();
-            var tmp = DateTime.Now.Millisecond;
-            using (var quantized = quantizer.QuantizeImage(new Bitmap(image)))
-            {
-                quantized.Save($"tmpPng/{chatId}{tmp}.png", ImageFormat.Png);
-            }
-            Console.WriteLine($"Compressed, elapsed {stopWatch.Elapsed}");
-            var fs = new MemoryStream(File.ReadAllBytes($"tmpPng/{chatId}{tmp}.png"));
+            var fs = new MemoryStream(File.ReadAllBytes($"tmpPng/{chatId}.png"));
             var fileToSend = new FileToSend($"Расписание.png", fs);
             await Bot.SendPhotoAsync(chatId, fileToSend);
             Console.WriteLine($"sended, elapsed {stopWatch.Elapsed}");
-            var file = new FileInfo($"tmpPng/{chatId}{tmp}.png");
+            var file = new FileInfo($"tmpPng/{chatId}.png");
             file.Delete();
         }
 
@@ -168,15 +163,11 @@ namespace kpfu_schedule
             var htmlDocument = _htmlParser.GetDay(group, day);
             _converterHtmlToImage.WebPageWidth = 400;
             var image = _converterHtmlToImage.ConvertHtmlString(htmlDocument);
-            var quantizer = new WuQuantizer();
-            using (var quantized = quantizer.QuantizeImage(new Bitmap(image)))
-            {
-                quantized.Save($"tmpPng/{chatId}today.png", ImageFormat.Png);
-            }
-            var fs = new MemoryStream(File.ReadAllBytes($"tmpPng/{chatId}today.png"));
-            var fileToSend = new FileToSend($"Расписание на сегодня.png", fs);
+            image.Save($"tmpPng/{chatId}Day{isToday}.png", ImageFormat.Png);
+            var fs = new MemoryStream(File.ReadAllBytes($"tmpPng/{chatId}Day{isToday}.png"));
+            var fileToSend = new FileToSend($"Расписание на {DateTimeFormatInfo.CurrentInfo.DayNames[day]}.png", fs);
             await Bot.SendPhotoAsync(chatId, fileToSend);
-            var file = new FileInfo($"tmpPng/{chatId}today.png");
+            var file = new FileInfo($"tmpPng/{chatId}Day{isToday}.png");
             file.Delete();
         }
     }

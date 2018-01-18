@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Entity;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -10,6 +12,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
 using kpfu_schedule.Jobs;
+using kpfu_schedule.Models;
 using nQuant;
 using SelectPdf;
 using Telegram.Bot;
