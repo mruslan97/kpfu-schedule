@@ -18,7 +18,7 @@ namespace kpfu_schedule
 {
     public class MessageHandler
     {
-        private static readonly TelegramBotClient Bot = new TelegramBotClient("349393552:AAGKVaWpgZb_Zyjfbz5wfrcxj3QbuIaEvRw");
+        private static readonly TelegramBotClient Bot = new TelegramBotClient("444905366:AAG9PlFd6ZusE3hPO_sGETGPhzgM_e7roZg");
         private HtmlToPdf _converterHtmlToPdf;
         private HtmlToImage _converterHtmlToImage;
         private HtmlParser _htmlParser;
@@ -72,7 +72,8 @@ namespace kpfu_schedule
                 $"Привет, {chat.FirstName}! Введи номер своей группы в формате **-***");
             using (var db = new TgUsersContext())
             {
-                db.Users.AddIfNotExists(new TgUser
+                if (db.Users.Find(chat.Id) != null) return;
+                db.Users.Add(new TgUser
                 {
                     ChatId = chat.Id,
                     Username = chat.Username,
@@ -134,16 +135,17 @@ namespace kpfu_schedule
             var image = _converterHtmlToImage.ConvertUrl($"https://kpfu.ru/week_sheadule_print?p_group_name={group}");
             Console.WriteLine($"Converted to image elapsed {stopWatch.Elapsed}");
             var quantizer = new WuQuantizer();
+            var tmp = DateTime.Now.Millisecond;
             using (var quantized = quantizer.QuantizeImage(new Bitmap(image)))
             {
-                quantized.Save($"tmpPng/{chatId}.png", ImageFormat.Png);
+                quantized.Save($"tmpPng/{chatId}{tmp}.png", ImageFormat.Png);
             }
             Console.WriteLine($"Compressed, elapsed {stopWatch.Elapsed}");
-            var fs = new MemoryStream(File.ReadAllBytes($"tmpPng/{chatId}.png"));
+            var fs = new MemoryStream(File.ReadAllBytes($"tmpPng/{chatId}{tmp}.png"));
             var fileToSend = new FileToSend($"Расписание.png", fs);
             await Bot.SendPhotoAsync(chatId, fileToSend);
             Console.WriteLine($"sended, elapsed {stopWatch.Elapsed}");
-            var file = new FileInfo($"tmpPng/{chatId}.png");
+            var file = new FileInfo($"tmpPng/{chatId}{tmp}.png");
             file.Delete();
         }
 

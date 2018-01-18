@@ -25,7 +25,7 @@ namespace kpfu_schedule
 {
     class Program
     {
-        private static readonly TelegramBotClient Bot = new TelegramBotClient("349393552:AAGKVaWpgZb_Zyjfbz5wfrcxj3QbuIaEvRw");
+        private static readonly TelegramBotClient Bot = new TelegramBotClient("444905366:AAG9PlFd6ZusE3hPO_sGETGPhzgM_e7roZg");
         private static readonly MessageHandler MessageHandler = new MessageHandler();
         static void Main(string[] args)
         {
@@ -43,6 +43,7 @@ namespace kpfu_schedule
         {
             var message = messageEventArgs.Message;
             if (message == null || message.Type != MessageType.TextMessage) return;
+            Console.WriteLine($"Message: {message.Text} from {message.Chat.Id}");
             await Task.Run(() => MessageHandler.SortInputMessage(message));
         }
 
