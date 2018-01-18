@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 using HtmlAgilityPack;
 using kpfu_schedule.Jobs;
 using kpfu_schedule.Models;
-using nQuant;
+using NLog;
 using SelectPdf;
 using Telegram.Bot;
 using Telegram.Bot.Args;
@@ -30,6 +30,7 @@ namespace kpfu_schedule
     {
         private static readonly TelegramBotClient Bot = new TelegramBotClient("444905366:AAG9PlFd6ZusE3hPO_sGETGPhzgM_e7roZg");
         private static readonly MessageHandler MessageHandler = new MessageHandler();
+        private static Logger _logger = LogManager.GetCurrentClassLogger();
         static void Main(string[] args)
         {
             //MessageScheduler.Start();
@@ -37,7 +38,6 @@ namespace kpfu_schedule
             Bot.OnMessageEdited += BotOnMessageReceived;
             Bot.OnReceiveError += BotOnReceiveError;
             Bot.StartReceiving();
-            Console.WriteLine($"Start listening");
             Console.ReadLine();
             Bot.StopReceiving();
         }
@@ -46,13 +46,13 @@ namespace kpfu_schedule
         {
             var message = messageEventArgs.Message;
             if (message == null || message.Type != MessageType.TextMessage) return;
-            Console.WriteLine($"Message: {message.Text} from {message.Chat.Id}");
+            _logger.Trace($"message:{message.Text} from:{message.Chat.Id}");
             await Task.Run(() => MessageHandler.SortInputMessage(message));
         }
 
         private static void BotOnReceiveError(object sender, ReceiveErrorEventArgs receiveErrorEventArgs)
         {
-            Console.WriteLine("Received error: {0} — {1}",
+            _logger.Warn("Received error: {0} — {1}",
                 receiveErrorEventArgs.ApiRequestException.ErrorCode,
                 receiveErrorEventArgs.ApiRequestException.Message);
         }

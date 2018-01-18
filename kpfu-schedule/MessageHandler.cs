@@ -7,19 +7,22 @@ using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using Common.Logging;
 using kpfu_schedule.Models;
-using nQuant;
+using NLog;
 using SelectPdf;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 using File = System.IO.File;
+using LogManager = NLog.LogManager;
 
 namespace kpfu_schedule
 {
     public class MessageHandler
     {
         private static readonly TelegramBotClient Bot = new TelegramBotClient("444905366:AAG9PlFd6ZusE3hPO_sGETGPhzgM_e7roZg");
+        private static Logger _logger = LogManager.GetCurrentClassLogger();
         private HtmlToPdf _converterHtmlToPdf;
         private HtmlToImage _converterHtmlToImage;
         private HtmlParser _htmlParser;
@@ -58,8 +61,11 @@ namespace kpfu_schedule
                     if (message.Text.Length == 6 || message.Text.Length == 8)
                         VerificationAnswer(message.Text, message.Chat.Id);
                     else
+                    {
                         await Bot.SendTextMessageAsync(message.Chat.Id,
                             "Неверный формат или данная команда отсутствует");
+                        _logger.Warn($"Unexpected command {message.Text} from {message.Chat.Id}");
+                    }
                     break;
             }
             // return "smth answer";
@@ -82,6 +88,7 @@ namespace kpfu_schedule
                     LastName = chat.LastName
                 });
                 await db.SaveChangesAsync();
+                _logger.Trace($"user {chat.Id} saved in db");
             }
         }
 
@@ -100,6 +107,7 @@ namespace kpfu_schedule
                 new[] {new KeyboardButton("Получить в pdf")},
                 new[] {new KeyboardButton("Получить в png") }});
             await Bot.SendTextMessageAsync(chatId, $"Группа сохранена.", replyMarkup: keyboard);
+            _logger.Trace($"user group change:{chatId}, new group:{group}");
         }
 
         private async void GetPdf(long chatId)
@@ -134,12 +142,12 @@ namespace kpfu_schedule
             }
             stopWatch.Start();
             var image = _converterHtmlToImage.ConvertUrl($"https://kpfu.ru/week_sheadule_print?p_group_name={group}");
-            image.Save($"tmpPng/{chatId}.png",ImageFormat.Png);
-            Console.WriteLine($"Converted to image elapsed {stopWatch.Elapsed}");
-            var fs = new MemoryStream(File.ReadAllBytes($"tmpPng/{chatId}.png"));
+            var tmp = DateTime.Now.Millisecond;
+            image.Save($"tmpPng/{chatId}{tmp}.png",ImageFormat.Png);
+            image.Dispose();
+            var fs = new MemoryStream(File.ReadAllBytes($"tmpPng/{chatId}{tmp}.png"));
             var fileToSend = new FileToSend($"Расписание.png", fs);
             await Bot.SendPhotoAsync(chatId, fileToSend);
-            Console.WriteLine($"sended, elapsed {stopWatch.Elapsed}");
             var file = new FileInfo($"tmpPng/{chatId}.png");
             file.Delete();
         }
@@ -163,8 +171,10 @@ namespace kpfu_schedule
             var htmlDocument = _htmlParser.GetDay(group, day);
             _converterHtmlToImage.WebPageWidth = 400;
             var image = _converterHtmlToImage.ConvertHtmlString(htmlDocument);
-            image.Save($"tmpPng/{chatId}Day{isToday}.png", ImageFormat.Png);
-            var fs = new MemoryStream(File.ReadAllBytes($"tmpPng/{chatId}Day{isToday}.png"));
+            var tmp = DateTime.Now.Millisecond;
+            image.Save($"tmpPng/{chatId}Day{isToday}{tmp}.png", ImageFormat.Png);
+            image.Dispose();
+            var fs = new MemoryStream(File.ReadAllBytes($"tmpPng/{chatId}Day{isToday}{tmp}.png"));
             var fileToSend = new FileToSend($"Расписание на {DateTimeFormatInfo.CurrentInfo.DayNames[day]}.png", fs);
             await Bot.SendPhotoAsync(chatId, fileToSend);
             var file = new FileInfo($"tmpPng/{chatId}Day{isToday}.png");
