@@ -4,6 +4,7 @@ using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
 using kpfu_schedule.Models;
+using kpfu_schedule.Tools;
 using SelectPdf;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -42,7 +43,7 @@ namespace kpfu_schedule
                 var user = await db.Users.SingleOrDefaultAsync(u => u.ChatId == chatId);
                 group = user.Group;
             }
-            var htmlDocument = _htmlParser.GetDay(group, day);
+            var htmlDocument = _htmlParser.ParseDay(group, day);
             _converterHtmlToImage.WebPageWidth = 350;
             var image = _converterHtmlToImage.ConvertHtmlString(htmlDocument);
             var tmp = DateTime.Now.Millisecond;

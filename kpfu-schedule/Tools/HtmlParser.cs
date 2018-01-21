@@ -1,16 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using HtmlAgilityPack;
 
-namespace kpfu_schedule
+namespace kpfu_schedule.Tools
 {
     public class HtmlParser
     {
-        public string GetDay(string group, int day)
+        public string ParseDay(string group, int day)
         {
             var webClient = new WebClient();
             var page = webClient.DownloadString($"https://kpfu.ru/week_sheadule_print?p_group_name={group}");

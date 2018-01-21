@@ -6,7 +6,7 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using File = System.IO.File;
 
-namespace kpfu_schedule
+namespace kpfu_schedule.Tools
 {
     public class PdfGenerator
     {
