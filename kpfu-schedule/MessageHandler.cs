@@ -25,6 +25,7 @@ namespace kpfu_schedule
         private static Logger _logger = LogManager.GetCurrentClassLogger();
         private HtmlToPdf _converterHtmlToPdf;
         private HtmlToImage _converterHtmlToImage;
+        private ImageGenerator _imageGenerator;
         private HtmlParser _htmlParser;
 
         public MessageHandler()
@@ -32,6 +33,7 @@ namespace kpfu_schedule
             _converterHtmlToPdf = new HtmlToPdf();
             _converterHtmlToImage = new HtmlToImage();
             _htmlParser = new HtmlParser();
+            _imageGenerator = new ImageGenerator();
         }
         public async void SortInputMessage(Message message)
         {
@@ -44,16 +46,16 @@ namespace kpfu_schedule
                     ChangeGroupAnswer(message.Chat.Id);
                     break;
                 case "на сегодня":
-                    OneDayAnswer(message.Chat.Id, true);
+                    _imageGenerator.GetDay(message.Chat.Id, true);
                     break;
                 case "на завтра":
-                    OneDayAnswer(message.Chat.Id, false);
+                    _imageGenerator.GetDay(message.Chat.Id,false);
                     break;
                 case "получить в pdf":
                     GetPdf(message.Chat.Id);
                     break;
                 case "получить в png":
-                    GetPng(message.Chat.Id);
+                    _imageGenerator.GetWeek(message.Chat.Id);
                     break;
                 default:
                     //var regex = new Regex(@"\d{2}-\d{3}");

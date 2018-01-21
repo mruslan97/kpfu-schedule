@@ -134,6 +134,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ImageGenerator.cs" />
     <Compile Include="Migrations\201801162335044_DbInitial.cs" />
     <Compile Include="Migrations\201801162335044_DbInitial.Designer.cs">
       <DependentUpon>201801162335044_DbInitial.cs</DependentUpon>
