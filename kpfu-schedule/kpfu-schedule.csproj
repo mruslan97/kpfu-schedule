@@ -147,6 +147,7 @@
     <Compile Include="Jobs\MessageScheduler.cs" />
     <Compile Include="MessageHandler.cs" />
     <Compile Include="Models\TgUser.cs" />
+    <Compile Include="PdfGenerator.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

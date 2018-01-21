@@ -1,13 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data.Entity;
-using System.Diagnostics;
 using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using kpfu_schedule.Models;
 using SelectPdf;
 using Telegram.Bot;
@@ -21,8 +16,9 @@ namespace kpfu_schedule
         private static readonly TelegramBotClient Bot =
             new TelegramBotClient("444905366:AAG9PlFd" +
                                   "6ZusE3hPO_sGETGPhzgM_e7roZg");
-        private HtmlToImage _converterHtmlToImage;
-        private HtmlParser _htmlParser;
+
+        private readonly HtmlToImage _converterHtmlToImage;
+        private readonly HtmlParser _htmlParser;
 
         public ImageGenerator()
         {
@@ -30,24 +26,24 @@ namespace kpfu_schedule
             _htmlParser = new HtmlParser();
         }
 
-        public async void GetDay(long chatId,bool isToday)
+        public async void GetDay(long chatId, bool isToday)
         {
             var day = isToday
                 ? Convert.ToInt32(DateTime.Today.DayOfWeek)
                 : Convert.ToInt32(DateTime.Today.DayOfWeek) + 1;
-            if (day == 6 && !isToday || day == 7)
+            if (day == 6 && !isToday || day == 0 && isToday)
             {
                 await Bot.SendTextMessageAsync(chatId, "Выходной день");
                 return;
             }
-            string group = "";
+            var group = "";
             using (var db = new TgUsersContext())
             {
                 var user = await db.Users.SingleOrDefaultAsync(u => u.ChatId == chatId);
                 group = user.Group;
             }
             var htmlDocument = _htmlParser.GetDay(group, day);
-            _converterHtmlToImage.WebPageWidth = 400;
+            _converterHtmlToImage.WebPageWidth = 350;
             var image = _converterHtmlToImage.ConvertHtmlString(htmlDocument);
             var tmp = DateTime.Now.Millisecond;
             image.Save($"tmpPng/{chatId}Day{isToday}{tmp}.png", ImageFormat.Png);
@@ -61,7 +57,7 @@ namespace kpfu_schedule
 
         public async void GetWeek(long chatId)
         {
-            string group = "";
+            var group = "";
             using (var db = new TgUsersContext())
             {
                 var user = await db.Users.SingleOrDefaultAsync(u => u.ChatId == chatId);

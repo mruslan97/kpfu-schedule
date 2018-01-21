@@ -1,42 +1,36 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.Entity;
-using System.Diagnostics;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using Common.Logging;
+﻿using System.Data.Entity;
+using System.Net.Http;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using kpfu_schedule.Models;
 using NLog;
-using SelectPdf;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
-using File = System.IO.File;
-using LogManager = NLog.LogManager;
 
 namespace kpfu_schedule
 {
     public class MessageHandler
     {
-        private static readonly TelegramBotClient Bot = new TelegramBotClient("444905366:AAG9PlFd6ZusE3hPO_sGETGPhzgM_e7roZg");
-        private static Logger _logger = LogManager.GetCurrentClassLogger();
-        private HtmlToPdf _converterHtmlToPdf;
-        private HtmlToImage _converterHtmlToImage;
-        private ImageGenerator _imageGenerator;
-        private HtmlParser _htmlParser;
+        private static readonly TelegramBotClient Bot =
+            new TelegramBotClient("444905366:AAG9PlFd6ZusE3hPO_sGETGPhzgM_e7roZg");
+
+        private static HttpClient _httpClient;
+        private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
+        private readonly PdfGenerator _pdfGenerator;
+        private readonly ImageGenerator _imageGenerator;
+
 
         public MessageHandler()
         {
-            _converterHtmlToPdf = new HtmlToPdf();
-            _converterHtmlToImage = new HtmlToImage();
-            _htmlParser = new HtmlParser();
+            _pdfGenerator = new PdfGenerator();
             _imageGenerator = new ImageGenerator();
+            _httpClient = new HttpClient();
         }
+
         public async void SortInputMessage(Message message)
         {
+            _logger.Trace($"message:{message.Text} from chatId:{message.Chat.Id}");
             switch (message.Text.ToLower())
             {
                 case "/start":
@@ -49,28 +43,28 @@ namespace kpfu_schedule
                     _imageGenerator.GetDay(message.Chat.Id, true);
                     break;
                 case "на завтра":
-                    _imageGenerator.GetDay(message.Chat.Id,false);
+                    _imageGenerator.GetDay(message.Chat.Id, false);
                     break;
-                case "получить в pdf":
-                    GetPdf(message.Chat.Id);
+                case "на неделю(pdf)":
+                    _pdfGenerator.GetPdf(message.Chat.Id);
                     break;
-                case "получить в png":
+                case "на неделю":
                     _imageGenerator.GetWeek(message.Chat.Id);
                     break;
                 default:
-                    //var regex = new Regex(@"\d{2}-\d{3}");
-                    //if (regex.IsMatch(message.Text) && message.Text.Length == 6)
-                    if (message.Text.Length == 6 || message.Text.Length == 8)
+                    var regex = new Regex(@"^\d{2}.?.?-\d{3}$");
+                    if (regex.IsMatch(message.Text))
+                    {
                         VerificationAnswer(message.Text, message.Chat.Id);
+                    }
                     else
                     {
                         await Bot.SendTextMessageAsync(message.Chat.Id,
                             "Неверный формат или данная команда отсутствует");
-                        _logger.Warn($"Unexpected command {message.Text} from {message.Chat.Id}");
+                        _logger.Info($"Unexpected command {message.Text} from chatId:{message.Chat.Id}");
                     }
                     break;
             }
-            // return "smth answer";
         }
 
         private async void HelloAnswer(Chat chat)
@@ -96,6 +90,13 @@ namespace kpfu_schedule
 
         private async void VerificationAnswer(string group, long chatId)
         {
+            var checkGroup = await CheckGroup(group);
+            if (!checkGroup)
+            {
+                await Bot.SendTextMessageAsync(chatId, "Нет данных для этой группы");
+                _logger.Info($"Schedule exist, group:{group}, chatId:{chatId}");
+                return;
+            }
             using (var db = new TgUsersContext())
             {
                 var user = await db.Users.SingleOrDefaultAsync(u => u.ChatId == chatId);
@@ -106,52 +107,11 @@ namespace kpfu_schedule
             {
                 new[] {new KeyboardButton("На сегодня")},
                 new[] {new KeyboardButton("На завтра")},
-                new[] {new KeyboardButton("Получить в pdf")},
-                new[] {new KeyboardButton("Получить в png") }});
+                new[] {new KeyboardButton("На неделю")},
+                new[] {new KeyboardButton("На неделю(pdf)")}
+            });
             await Bot.SendTextMessageAsync(chatId, $"Группа сохранена.", replyMarkup: keyboard);
             _logger.Trace($"user group change:{chatId}, new group:{group}");
-        }
-
-        private async void GetPdf(long chatId)
-        {
-            var stopWatch = new Stopwatch();
-            string group = "";
-            using (var db = new TgUsersContext())
-            {
-                var user = await db.Users.SingleOrDefaultAsync(u => u.ChatId == chatId);
-                group = user.Group;
-            }
-            stopWatch.Start();
-            var doc = _converterHtmlToPdf.ConvertUrl($"https://kpfu.ru/week_sheadule_print?p_group_name={group}");
-            Console.WriteLine($"Converted to pdf elapsed {stopWatch.Elapsed}");
-            doc.Save($"tmpPdf/{chatId}.pdf");
-            var fs = new MemoryStream(File.ReadAllBytes($"tmpPdf/{chatId}.pdf"));
-            var fileToSend = new FileToSend($"Расписание.pdf", fs);
-            await Bot.SendDocumentAsync(chatId, fileToSend);
-            Console.WriteLine($"sended, elapsed {stopWatch.Elapsed}");
-            var file = new FileInfo($"tmpPdf/{chatId}.pdf");
-            file.Delete();
-        }
-
-        private async void GetPng(long chatId)
-        {
-            var stopWatch = new Stopwatch();
-            string group = "";
-            using (var db = new TgUsersContext())
-            {
-                var user = await db.Users.SingleOrDefaultAsync(u => u.ChatId == chatId);
-                group = user.Group;
-            }
-            stopWatch.Start();
-            var image = _converterHtmlToImage.ConvertUrl($"https://kpfu.ru/week_sheadule_print?p_group_name={group}");
-            var tmp = DateTime.Now.Millisecond;
-            image.Save($"tmpPng/{chatId}{tmp}.png",ImageFormat.Png);
-            image.Dispose();
-            var fs = new MemoryStream(File.ReadAllBytes($"tmpPng/{chatId}{tmp}.png"));
-            var fileToSend = new FileToSend($"Расписание.png", fs);
-            await Bot.SendPhotoAsync(chatId, fileToSend);
-            var file = new FileInfo($"tmpPng/{chatId}.png");
-            file.Delete();
         }
 
         private async void ChangeGroupAnswer(long chatId)
@@ -159,28 +119,10 @@ namespace kpfu_schedule
             await Bot.SendTextMessageAsync(chatId, "Отправь номер новой группы");
         }
 
-        private async void OneDayAnswer(long chatId, bool isToday)
+        private async Task<bool> CheckGroup(string group)
         {
-            var day = isToday 
-                ? Convert.ToInt32(DateTime.Today.DayOfWeek)
-                : Convert.ToInt32(DateTime.Today.DayOfWeek) + 1;
-            string group = "";
-            using (var db = new TgUsersContext())
-            {
-                var user = await db.Users.SingleOrDefaultAsync(u => u.ChatId == chatId);
-                group = user.Group;
-            }
-            var htmlDocument = _htmlParser.GetDay(group, day);
-            _converterHtmlToImage.WebPageWidth = 400;
-            var image = _converterHtmlToImage.ConvertHtmlString(htmlDocument);
-            var tmp = DateTime.Now.Millisecond;
-            image.Save($"tmpPng/{chatId}Day{isToday}{tmp}.png", ImageFormat.Png);
-            image.Dispose();
-            var fs = new MemoryStream(File.ReadAllBytes($"tmpPng/{chatId}Day{isToday}{tmp}.png"));
-            var fileToSend = new FileToSend($"Расписание на {DateTimeFormatInfo.CurrentInfo.DayNames[day]}.png", fs);
-            await Bot.SendPhotoAsync(chatId, fileToSend);
-            var file = new FileInfo($"tmpPng/{chatId}Day{isToday}.png");
-            file.Delete();
+            var result = await _httpClient.GetStringAsync($"https://kpfu.ru/week_sheadule_print?p_group_name={group}");
+            return !result.Contains("Расписание не найдено");
         }
     }
 }
