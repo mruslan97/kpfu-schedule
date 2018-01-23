@@ -134,7 +134,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ImageGenerator.cs" />
+    <Compile Include="Tools\Cache.cs" />
+    <Compile Include="Tools\ImageGenerator.cs" />
     <Compile Include="Migrations\201801162335044_DbInitial.cs" />
     <Compile Include="Migrations\201801162335044_DbInitial.Designer.cs">
       <DependentUpon>201801162335044_DbInitial.cs</DependentUpon>
@@ -142,12 +143,12 @@
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\TgUsersContext.cs" />
     <Compile Include="Models\Entity.cs" />
-    <Compile Include="HtmlParser.cs" />
-    <Compile Include="Jobs\MessageSender.cs" />
-    <Compile Include="Jobs\MessageScheduler.cs" />
+    <Compile Include="Tools\HtmlParser.cs" />
+    <Compile Include="Jobs\ScheduleUpdater.cs" />
+    <Compile Include="Jobs\UpdateScheduler.cs" />
     <Compile Include="MessageHandler.cs" />
     <Compile Include="Models\TgUser.cs" />
-    <Compile Include="PdfGenerator.cs" />
+    <Compile Include="Tools\PdfGenerator.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

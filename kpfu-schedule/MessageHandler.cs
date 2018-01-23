@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using kpfu_schedule.Models;
+using kpfu_schedule.Tools;
 using NLog;
 using Telegram.Bot;
 using Telegram.Bot.Types;

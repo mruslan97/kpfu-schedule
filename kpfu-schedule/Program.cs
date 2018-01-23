@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using kpfu_schedule.Jobs;
 using NLog;
 using Telegram.Bot;
 using Telegram.Bot.Args;
@@ -17,7 +18,7 @@ namespace kpfu_schedule
 
         private static void Main(string[] args)
         {
-            //MessageScheduler.Start();
+            UpdateScheduler.Start();
             Bot.OnMessage += BotOnMessageReceived;
             Bot.OnMessageEdited += BotOnMessageReceived;
             Bot.OnReceiveError += BotOnReceiveError;
