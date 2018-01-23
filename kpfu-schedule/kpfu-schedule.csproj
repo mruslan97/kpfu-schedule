@@ -149,7 +149,7 @@
     <Compile Include="MessageHandler.cs" />
     <Compile Include="Models\TgUser.cs" />
     <Compile Include="Tools\PdfGenerator.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="BotStarter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

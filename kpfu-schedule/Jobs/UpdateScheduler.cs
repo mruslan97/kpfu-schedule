@@ -1,5 +1,7 @@
-﻿using Quartz;
+﻿using System;
+using Quartz;
 using Quartz.Impl;
+using Quartz.Impl.Calendar;
 
 namespace kpfu_schedule.Jobs
 {
@@ -12,8 +14,7 @@ namespace kpfu_schedule.Jobs
             var job = JobBuilder.Create<ScheduleUpdater>().Build();
             var trigger = TriggerBuilder.Create()
                 .WithIdentity("trigger1", "group1")
-                .StartNow()
-                .WithSchedule(CronScheduleBuilder.DailyAtHourAndMinute(04, 14))
+                .WithSchedule(CronScheduleBuilder.DailyAtHourAndMinute(04, 00))
                 .Build();
             scheduler.ScheduleJob(job, trigger);
         }
