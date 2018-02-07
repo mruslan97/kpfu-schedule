@@ -28,14 +28,13 @@ namespace kpfu_schedule.Tools
 
         public async void GetDay(long chatId, bool isToday)
         {
-            var day = isToday
-                ? Convert.ToInt32(DateTime.Today.DayOfWeek)
-                : Convert.ToInt32(DateTime.Today.DayOfWeek) + 1;
+            var day = Convert.ToInt32(DateTime.Today.DayOfWeek);
             if (day == 6 && !isToday || day == 0 && isToday)
             {
                 await Bot.SendTextMessageAsync(chatId, "Выходной день");
                 return;
             }
+            day = isToday ? day : day + 1;
             var group = "";
             using (var db = new TgUsersContext())
             {
@@ -45,8 +44,8 @@ namespace kpfu_schedule.Tools
             if (!File.Exists($"tmpPng/{group}{isToday}.png"))
             {
                 var htmlDocument = _htmlParser.ParseDay(group, day);
-                _converterHtmlToImage.WebPageWidth = 350;
-                var image = _converterHtmlToImage.ConvertHtmlString(htmlDocument);
+                _converterHtmlToImage.WebPageWidth = 600;
+                var image = _converterHtmlToImage.ConvertHtmlString(await htmlDocument);
                 image.Save($"tmpPng/{group}{isToday}.png", ImageFormat.Png);
                 image.Dispose();
             }

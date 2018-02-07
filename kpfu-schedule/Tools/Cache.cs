@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
 using kpfu_schedule.Models;
 using NLog;
@@ -14,8 +15,10 @@ namespace kpfu_schedule.Tools
         private readonly HtmlParser _htmlParser = new HtmlParser();
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
-        public void Update()
+        public async void Update()
         {
+            Directory.Delete("tmpPng", true);
+            Directory.CreateDirectory("tmpPng");
             _logger.Trace("Starting update cache");
             var groups = new List<string>();
             using (var db = new TgUsersContext())
@@ -28,9 +31,9 @@ namespace kpfu_schedule.Tools
             {
                 var htmlToday = _htmlParser.ParseDay(group, day);
                 var htmlTomorrow = _htmlParser.ParseDay(group, day + 1);
-                _converterHtmlToImage.WebPageWidth = 350;
-                var imageToday = _converterHtmlToImage.ConvertHtmlString(htmlToday);
-                var imageTomorrow = _converterHtmlToImage.ConvertHtmlString(htmlTomorrow);
+                _converterHtmlToImage.WebPageWidth = 600;
+                var imageToday = _converterHtmlToImage.ConvertHtmlString(await htmlToday);
+                var imageTomorrow = _converterHtmlToImage.ConvertHtmlString(await htmlTomorrow);
                 var imageWeek = _converterHtmlToImage.ConvertUrl(
                     $"https://kpfu.ru/week_sheadule_print?p_group_name={group}");
                 imageToday.Save($"tmpPng/{group}{true}.png", ImageFormat.Png);

@@ -37,6 +37,12 @@ namespace kpfu_schedule
                 case "/start":
                     HelloAnswer(message.Chat);
                     break;
+                case "/help":
+                    HelpAnswer(message.Chat.Id);
+                    break;
+                case "/keyboard":
+                    UpdateKeyboard(message.Chat.Id);
+                    break;
                 case "смена группы":
                     ChangeGroupAnswer(message.Chat.Id);
                     break;
@@ -70,8 +76,6 @@ namespace kpfu_schedule
 
         private async void HelloAnswer(Chat chat)
         {
-            var sticker = new FileToSend("CAADAgADnwIAApkvSwpAf6KT3FrhngI");
-            await Bot.SendStickerAsync(chat.Id, sticker);
             await Bot.SendTextMessageAsync(chat.Id,
                 $"Привет, {chat.FirstName}! Введи номер своей группы в формате **-***");
             using (var db = new TgUsersContext())
@@ -87,6 +91,34 @@ namespace kpfu_schedule
                 await db.SaveChangesAsync();
                 _logger.Trace($"user {chat.Id} saved in db");
             }
+        }
+
+        private async void UpdateKeyboard(long chatId)
+        {
+            using (var db = new TgUsersContext())
+            {
+                var user = await db.Users.SingleOrDefaultAsync(u => u.ChatId == chatId);
+                if (user.Group == null)
+                {
+                    await Bot.SendTextMessageAsync(chatId, "Сначала введи номер группы");
+                    return;
+                }
+
+            }
+            var keyboard = new ReplyKeyboardMarkup(new[]
+            {
+                new[] {new KeyboardButton("На сегодня")},
+                new[] {new KeyboardButton("На завтра")},
+                new[] {new KeyboardButton("На неделю")},
+                new[] {new KeyboardButton("На неделю(pdf)")}
+            });
+            await Bot.SendTextMessageAsync(chatId,"Новая клавиатура", replyMarkup: keyboard);
+        }
+
+        private async void HelpAnswer(long chatId)
+        {
+            await Bot.SendTextMessageAsync(chatId,
+                "Для смены группы просто отправь новый номер. По критическим ошибкам: t.me/ruslan_m97");
         }
 
         private async void VerificationAnswer(string group, long chatId)
