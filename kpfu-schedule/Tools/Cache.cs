@@ -19,21 +19,23 @@ namespace kpfu_schedule.Tools
         {
             Directory.Delete("tmpPng", true);
             Directory.CreateDirectory("tmpPng");
+            Console.WriteLine("Starting update cache");
             _logger.Trace("Starting update cache");
             var groups = new List<string>();
             using (var db = new TgUsersContext())
             {
-                groups = db.Users.Select(u => u.Group).Distinct().ToList();
+                groups = db.Users.Select(u => u.Group).Where(g => g != null).Distinct().ToList();
                 _logger.Trace("Downloaded groups");
             }
+
             var day = Convert.ToInt32(DateTime.Today.DayOfWeek);
             foreach (var group in groups)
             {
-                var htmlToday = _htmlParser.ParseDay(group, day);
-                var htmlTomorrow = _htmlParser.ParseDay(group, day + 1);
+                var htmlToday = await _htmlParser.ParseDay(group, day);
+                var htmlTomorrow = await _htmlParser.ParseDay(group, day + 1);
                 _converterHtmlToImage.WebPageWidth = 600;
-                var imageToday = _converterHtmlToImage.ConvertHtmlString(await htmlToday);
-                var imageTomorrow = _converterHtmlToImage.ConvertHtmlString(await htmlTomorrow);
+                var imageToday = _converterHtmlToImage.ConvertHtmlString(htmlToday);
+                var imageTomorrow = _converterHtmlToImage.ConvertHtmlString(htmlTomorrow);
                 var imageWeek = _converterHtmlToImage.ConvertUrl(
                     $"https://kpfu.ru/week_sheadule_print?p_group_name={group}");
                 imageToday.Save($"tmpPng/{group}{true}.png", ImageFormat.Png);
@@ -43,6 +45,7 @@ namespace kpfu_schedule.Tools
                 imageTomorrow.Dispose();
                 imageWeek.Dispose();
             }
+
             _logger.Trace("Cache update successful");
         }
     }
