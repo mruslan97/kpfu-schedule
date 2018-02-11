@@ -14,7 +14,7 @@ namespace kpfu_schedule.Jobs
             var job = JobBuilder.Create<ScheduleUpdater>().Build();
             var trigger = TriggerBuilder.Create()
                 .WithIdentity("trigger1", "group1")
-                .WithSchedule(CronScheduleBuilder.DailyAtHourAndMinute(00, 00))
+                .WithSchedule(CronScheduleBuilder.DailyAtHourAndMinute(00,00))
                 .Build();
             scheduler.ScheduleJob(job, trigger);
         }
