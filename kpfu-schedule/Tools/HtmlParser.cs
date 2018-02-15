@@ -12,12 +12,9 @@ namespace kpfu_schedule.Tools
 {
     public class HtmlParser
     {
-        public async Task<string> ParseDay(string group, int day)
+        public string ParseDay(string htmlPage, int day)
         {
-            var httpClient = new HttpClient();
-            //var webClient = new WebClient();
-            //var page = webClient.DownloadData($"https://kpfu.ru/week_sheadule_print?p_group_name={group}");
-            var page = await httpClient.GetStringAsync($"https://kpfu.ru/week_sheadule_print?p_group_name={group}");
+            var page = htmlPage;
             var doc = new HtmlDocument();
             doc.LoadHtml(page);
             var trNodes = doc.DocumentNode.SelectSingleNode("//table").ChildNodes.Where(x => x.Name == "tr");

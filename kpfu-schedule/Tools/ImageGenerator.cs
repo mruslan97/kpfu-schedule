@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Data.Entity;
 using System.Drawing.Imaging;
-using System.Globalization;
 using System.IO;
+using System.Net.Http;
 using kpfu_schedule.Models;
+using NLog;
 using SelectPdf;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -19,6 +20,7 @@ namespace kpfu_schedule.Tools
 
         private readonly HtmlToImage _converterHtmlToImage;
         private readonly HtmlParser _htmlParser;
+        private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
         public ImageGenerator()
         {
@@ -28,50 +30,68 @@ namespace kpfu_schedule.Tools
 
         public async void GetDay(long chatId, bool isToday)
         {
-            var day = Convert.ToInt32(DateTime.Today.DayOfWeek);
-            if (day == 6 && !isToday || day == 0 && isToday)
+            try
             {
-                await Bot.SendTextMessageAsync(chatId, "Выходной день");
-                return;
+                var day = Convert.ToInt32(DateTime.Today.DayOfWeek);
+                if (day == 6 && !isToday || day == 0 && isToday)
+                {
+                    await Bot.SendTextMessageAsync(chatId, "Выходной день");
+                    return;
+                }
+                day = isToday ? day : day + 1;
+                var group = "";
+                using (var db = new TgUsersContext())
+                {
+                    var user = await db.Users.SingleOrDefaultAsync(u => u.ChatId == chatId);
+                    group = user.Group;
+                }
+                if (!File.Exists($"tmpPng/{group}{isToday}.png"))
+                {
+                    var httpClient = new HttpClient();
+                    var htmlPage =
+                        await httpClient.GetStringAsync($"https://kpfu.ru/week_sheadule_print?p_group_name={group}");
+                    var htmlDocument = _htmlParser.ParseDay(htmlPage, day);
+                    _converterHtmlToImage.WebPageWidth = 600;
+                    var image = _converterHtmlToImage.ConvertHtmlString(htmlDocument);
+                    image.Save($"tmpPng/{group}{isToday}.png", ImageFormat.Png);
+                    image.Dispose();
+                }
+                var fs = new MemoryStream(File.ReadAllBytes($"tmpPng/{group}{isToday}.png"));
+                var fileToSend = new FileToSend($"Расписание.png", fs);
+                await Bot.SendPhotoAsync(chatId, fileToSend);
             }
-            day = isToday ? day : day + 1;
-            var group = "";
-            using (var db = new TgUsersContext())
+            catch (Exception e)
             {
-                var user = await db.Users.SingleOrDefaultAsync(u => u.ChatId == chatId);
-                group = user.Group;
+                _logger.Error($"{e.Message} / chatId: {chatId}");
             }
-            if (!File.Exists($"tmpPng/{group}{isToday}.png"))
-            {
-                var htmlDocument = _htmlParser.ParseDay(group, day);
-                _converterHtmlToImage.WebPageWidth = 600;
-                var image = _converterHtmlToImage.ConvertHtmlString(await htmlDocument);
-                image.Save($"tmpPng/{group}{isToday}.png", ImageFormat.Png);
-                image.Dispose();
-            }
-            var fs = new MemoryStream(File.ReadAllBytes($"tmpPng/{group}{isToday}.png"));
-            var fileToSend = new FileToSend($"Расписание.png", fs);
-            await Bot.SendPhotoAsync(chatId, fileToSend);
         }
 
         public async void GetWeek(long chatId)
         {
-            var group = "";
-            using (var db = new TgUsersContext())
+            try
             {
-                var user = await db.Users.SingleOrDefaultAsync(u => u.ChatId == chatId);
-                group = user.Group;
+                var group = "";
+                using (var db = new TgUsersContext())
+                {
+                    var user = await db.Users.SingleOrDefaultAsync(u => u.ChatId == chatId);
+                    group = user.Group;
+                }
+                if (!File.Exists($"tmpPng/{group}week.png"))
+                {
+                    var image = _converterHtmlToImage.ConvertUrl(
+                        $"https://kpfu.ru/week_sheadule_print?p_group_name={group}");
+                    image.Save($"tmpPng/{group}week.png", ImageFormat.Png);
+                    image.Dispose();
+                }
+                var fs = new MemoryStream(File.ReadAllBytes($"tmpPng/{group}week.png"));
+                var fileToSend = new FileToSend($"Расписание.png", fs);
+                await Bot.SendPhotoAsync(chatId, fileToSend);
             }
-            if (!File.Exists($"tmpPng/{group}week.png"))
+            catch (Exception e)
             {
-                var image = _converterHtmlToImage.ConvertUrl(
-                    $"https://kpfu.ru/week_sheadule_print?p_group_name={group}");
-                image.Save($"tmpPng/{group}week.png", ImageFormat.Png);
-                image.Dispose();
+                _logger.Error($"{e.Message} / chatId: {chatId}");
             }
-            var fs = new MemoryStream(File.ReadAllBytes($"tmpPng/{group}week.png"));
-            var fileToSend = new FileToSend($"Расписание.png", fs);
-            await Bot.SendPhotoAsync(chatId, fileToSend);
         }
     }
 }
+

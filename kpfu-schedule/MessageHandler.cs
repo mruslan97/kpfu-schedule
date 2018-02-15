@@ -1,4 +1,5 @@
-﻿using System.Data.Entity;
+﻿using System;
+using System.Data.Entity;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -76,43 +77,57 @@ namespace kpfu_schedule
 
         private async void HelloAnswer(Chat chat)
         {
-            await Bot.SendTextMessageAsync(chat.Id,
-                $"Привет, {chat.FirstName}! Введи номер своей группы в формате **-***");
-            using (var db = new TgUsersContext())
+            try
             {
-                if (db.Users.Find(chat.Id) != null) return;
-                db.Users.Add(new TgUser
+                await Bot.SendTextMessageAsync(chat.Id,
+                    $"Привет, {chat.FirstName}! Введи номер своей группы в формате **-***");
+                using (var db = new TgUsersContext())
                 {
-                    ChatId = chat.Id,
-                    Username = chat.Username,
-                    FirstName = chat.FirstName,
-                    LastName = chat.LastName
-                });
-                await db.SaveChangesAsync();
-                _logger.Trace($"user {chat.Id} saved in db");
+                    if (db.Users.Find(chat.Id) != null) return;
+                    db.Users.Add(new TgUser
+                    {
+                        ChatId = chat.Id,
+                        Username = chat.Username,
+                        FirstName = chat.FirstName,
+                        LastName = chat.LastName
+                    });
+                    await db.SaveChangesAsync();
+                    _logger.Trace($"user {chat.Id} saved in db");
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.Error($"{e.Message} / chatId: {chat.Id}");
             }
         }
 
         private async void UpdateKeyboard(long chatId)
         {
-            using (var db = new TgUsersContext())
+            try
             {
-                var user = await db.Users.SingleOrDefaultAsync(u => u.ChatId == chatId);
-                if (user?.Group == null)
+                using (var db = new TgUsersContext())
                 {
-                    await Bot.SendTextMessageAsync(chatId, "Сначала введи номер группы");
-                    return;
+                    var user = await db.Users.SingleOrDefaultAsync(u => u.ChatId == chatId);
+                    if (user?.Group == null)
+                    {
+                        await Bot.SendTextMessageAsync(chatId, "Сначала введи номер группы");
+                        return;
+                    }
                 }
 
+                var keyboard = new ReplyKeyboardMarkup(new[]
+                {
+                    new[] {new KeyboardButton("На сегодня")},
+                    new[] {new KeyboardButton("На завтра")},
+                    new[] {new KeyboardButton("На неделю")},
+                    new[] {new KeyboardButton("На неделю(pdf)")}
+                });
+                await Bot.SendTextMessageAsync(chatId, "Новая клавиатура", replyMarkup: keyboard);
             }
-            var keyboard = new ReplyKeyboardMarkup(new[]
+            catch (Exception e)
             {
-                new[] {new KeyboardButton("На сегодня")},
-                new[] {new KeyboardButton("На завтра")},
-                new[] {new KeyboardButton("На неделю")},
-                new[] {new KeyboardButton("На неделю(pdf)")}
-            });
-            await Bot.SendTextMessageAsync(chatId,"Новая клавиатура", replyMarkup: keyboard);
+                _logger.Error($"keyboard update error {e.Message} / chatId: {chatId}");
+            }
         }
 
         private async void HelpAnswer(long chatId)
@@ -123,28 +138,35 @@ namespace kpfu_schedule
 
         private async void VerificationAnswer(string group, long chatId)
         {
-            var checkGroup = await CheckGroup(group);
-            if (!checkGroup)
+            try
             {
-                await Bot.SendTextMessageAsync(chatId, "Нет данных для этой группы");
-                _logger.Info($"Schedule exist, group:{group}, chatId:{chatId}");
-                return;
+                var checkGroup = await CheckGroup(group);
+                if (!checkGroup)
+                {
+                    await Bot.SendTextMessageAsync(chatId, "Нет данных для этой группы");
+                    _logger.Info($"Schedule exist, group:{group}, chatId:{chatId}");
+                    return;
+                }
+                using (var db = new TgUsersContext())
+                {
+                    var user = await db.Users.SingleOrDefaultAsync(u => u.ChatId == chatId);
+                    user.Group = group;
+                    await db.SaveChangesAsync();
+                }
+                var keyboard = new ReplyKeyboardMarkup(new[]
+                {
+                    new[] {new KeyboardButton("На сегодня")},
+                    new[] {new KeyboardButton("На завтра")},
+                    new[] {new KeyboardButton("На неделю")},
+                    new[] {new KeyboardButton("На неделю(pdf)")}
+                });
+                await Bot.SendTextMessageAsync(chatId, $"Группа сохранена.", replyMarkup: keyboard);
+                _logger.Trace($"user group change:{chatId}, new group:{group}");
             }
-            using (var db = new TgUsersContext())
+            catch (Exception e)
             {
-                var user = await db.Users.SingleOrDefaultAsync(u => u.ChatId == chatId);
-                user.Group = group;
-                await db.SaveChangesAsync();
+                _logger.Error($"{e.Message} / chatid: {chatId}");
             }
-            var keyboard = new ReplyKeyboardMarkup(new[]
-            {
-                new[] {new KeyboardButton("На сегодня")},
-                new[] {new KeyboardButton("На завтра")},
-                new[] {new KeyboardButton("На неделю")},
-                new[] {new KeyboardButton("На неделю(pdf)")}
-            });
-            await Bot.SendTextMessageAsync(chatId, $"Группа сохранена.", replyMarkup: keyboard);
-            _logger.Trace($"user group change:{chatId}, new group:{group}");
         }
 
         private async void ChangeGroupAnswer(long chatId)

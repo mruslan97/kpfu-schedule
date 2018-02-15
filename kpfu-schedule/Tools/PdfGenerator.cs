@@ -1,6 +1,8 @@
-﻿using System.Data.Entity;
+﻿using System;
+using System.Data.Entity;
 using System.IO;
 using kpfu_schedule.Models;
+using NLog;
 using SelectPdf;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -15,6 +17,7 @@ namespace kpfu_schedule.Tools
                                   "6ZusE3hPO_sGETGPhzgM_e7roZg");
 
         private readonly HtmlToPdf _converterHtmlToPdf;
+        private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
         public PdfGenerator()
         {
@@ -23,19 +26,26 @@ namespace kpfu_schedule.Tools
 
         public async void GetPdf(long chatId)
         {
-            var group = "";
-            using (var db = new TgUsersContext())
+            try
             {
-                var user = await db.Users.SingleOrDefaultAsync(u => u.ChatId == chatId);
-                group = user.Group;
+                var group = "";
+                using (var db = new TgUsersContext())
+                {
+                    var user = await db.Users.SingleOrDefaultAsync(u => u.ChatId == chatId);
+                    group = user.Group;
+                }
+                var doc = _converterHtmlToPdf.ConvertUrl($"https://kpfu.ru/week_sheadule_print?p_group_name={group}");
+                doc.Save($"tmpPdf/{chatId}.pdf");
+                var fs = new MemoryStream(File.ReadAllBytes($"tmpPdf/{chatId}.pdf"));
+                var fileToSend = new FileToSend($"Расписание.pdf", fs);
+                await Bot.SendDocumentAsync(chatId, fileToSend);
+                var file = new FileInfo($"tmpPdf/{chatId}.pdf");
+                file.Delete();
             }
-            var doc = _converterHtmlToPdf.ConvertUrl($"https://kpfu.ru/week_sheadule_print?p_group_name={group}");
-            doc.Save($"tmpPdf/{chatId}.pdf");
-            var fs = new MemoryStream(File.ReadAllBytes($"tmpPdf/{chatId}.pdf"));
-            var fileToSend = new FileToSend($"Расписание.pdf", fs);
-            await Bot.SendDocumentAsync(chatId, fileToSend);
-            var file = new FileInfo($"tmpPdf/{chatId}.pdf");
-            file.Delete();
+            catch (Exception e)
+            {
+                _logger.Error($"{e.Message} / chatId : {chatId}");
+            }
         }
     }
 }
