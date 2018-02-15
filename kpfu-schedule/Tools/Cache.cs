@@ -4,6 +4,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Threading.Tasks;
 using kpfu_schedule.Models;
 using NLog;
 using SelectPdf;
@@ -15,13 +16,14 @@ namespace kpfu_schedule.Tools
         private readonly HtmlToImage _converterHtmlToImage = new HtmlToImage();
         private readonly HtmlParser _htmlParser = new HtmlParser();
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
+        private readonly HttpClient _httpClient = new HttpClient();
 
-        public void Update()
+        public async void Update()
         {
-            Console.WriteLine("started");
-            Directory.Delete("tmpPng", true);
-            Directory.CreateDirectory("tmpPng");
-            _logger.Trace("Starting cache update");
+            _logger.Trace("Start cache update");
+            var di = new DirectoryInfo("tmpPng");
+            foreach (var file in di.GetFiles())
+                file.Delete();
             var groups = new List<string>();
             using (var db = new TgUsersContext())
             {
@@ -29,20 +31,22 @@ namespace kpfu_schedule.Tools
                 _logger.Trace("Downloaded groups");
             }
             var day = Convert.ToInt32(DateTime.Today.DayOfWeek);
-            groups.ForEach(group => UpdateGroup(group, day));
+
+            foreach (var group in groups)
+                await UpdateGroup(group, day);
             _logger.Trace("Cache update successful");
         }
 
-        private async void UpdateGroup(string group, int day)
+        private async Task UpdateGroup(string group, int day)
         {
-            var httpClient = new HttpClient();
-            var htmlPage = await httpClient.GetStringAsync($"https://kpfu.ru/week_sheadule_print?p_group_name={group}");
-            UpdateWeek(group, htmlPage);
+            var htmlPage =
+                await _httpClient.GetStringAsync($"https://kpfu.ru/week_sheadule_print?p_group_name={group}");
+            UpdateWeek(htmlPage, group);
             _converterHtmlToImage.WebPageWidth = 600;
             if (day != 0)
                 UpdateToday(htmlPage, group, day);
             day += 1;
-            if (day != 6)
+            if (day != 7)
                 UpdateTomorrow(htmlPage, group, day);
         }
 
@@ -62,7 +66,7 @@ namespace kpfu_schedule.Tools
             imageTomorrow.Dispose();
         }
 
-        private void UpdateWeek(string group, string htmlPage)
+        private void UpdateWeek(string htmlPage, string group)
         {
             var imageWeek = _converterHtmlToImage.ConvertHtmlString(htmlPage);
             imageWeek.Save($"tmpPng/{group}week.png", ImageFormat.Png);

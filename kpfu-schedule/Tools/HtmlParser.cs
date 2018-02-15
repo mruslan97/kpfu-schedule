@@ -1,11 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Runtime.ConstrainedExecution;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 using HtmlAgilityPack;
 
 namespace kpfu_schedule.Tools
@@ -39,7 +32,7 @@ namespace kpfu_schedule.Tools
             return doc.DocumentNode.InnerHtml.Replace("width:956px;", string.Empty)
                 .Replace("td{ width:143px;}", "td{ width:600px;}").Replace("font-size: 10px;", "font-size: 24px; ")
                 .Replace("font-size: 13px;", "font-size: 24px;")
-                .Replace(".small_td{ width:100px;}", ".small_td{ width:200px;}"); 
+                .Replace(".small_td{ width:100px;}", ".small_td{ width:200px;}");
         }
     }
 }
