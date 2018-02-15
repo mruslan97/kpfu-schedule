@@ -98,7 +98,7 @@ namespace kpfu_schedule
             using (var db = new TgUsersContext())
             {
                 var user = await db.Users.SingleOrDefaultAsync(u => u.ChatId == chatId);
-                if (user.Group == null)
+                if (user?.Group == null)
                 {
                     await Bot.SendTextMessageAsync(chatId, "Сначала введи номер группы");
                     return;
