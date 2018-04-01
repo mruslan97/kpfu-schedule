@@ -1,4 +1,5 @@
-﻿using kpfu_schedule.Tools;
+﻿using System;
+using kpfu_schedule.Tools;
 using Quartz;
 
 namespace kpfu_schedule.Jobs

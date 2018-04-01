@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.Threading.Tasks;
 using kpfu_schedule.Jobs;
 using NLog;
@@ -11,7 +12,7 @@ namespace kpfu_schedule
     internal class BotStarter
     {
         private static readonly TelegramBotClient Bot =
-            new TelegramBotClient("444905366:AAG9PlFd6ZusE3hPO_sGETGPhzgM_e7roZg");
+            new TelegramBotClient(ConfigurationManager.AppSettings["BotToken"]);
 
         //private static readonly MessageHandler MessageHandler = new MessageHandler();
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
@@ -19,12 +20,12 @@ namespace kpfu_schedule
         private static void Main(string[] args)
         {
             UpdateScheduler.Start();
-            Bot.OnMessage += BotOnMessageReceived;
-            Bot.OnMessageEdited += BotOnMessageReceived;
-            Bot.OnReceiveError += BotOnReceiveError;
-            Bot.StartReceiving();
-            Console.ReadLine();
-            Bot.StopReceiving();
+            //Bot.OnMessage += BotOnMessageReceived;
+            //Bot.OnMessageEdited += BotOnMessageReceived;
+            //Bot.OnReceiveError += BotOnReceiveError;
+            //Bot.StartReceiving();
+            //Console.ReadLine();
+            //Bot.StopReceiving();
         }
 
         private static async void BotOnMessageReceived(object sender, MessageEventArgs messageEventArgs)

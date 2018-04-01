@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.Data.Entity;
 using System.IO;
 using kpfu_schedule.Models;
@@ -13,8 +14,7 @@ namespace kpfu_schedule.Tools
     public class PdfGenerator
     {
         private static readonly TelegramBotClient Bot =
-            new TelegramBotClient("444905366:AAG9PlFd" +
-                                  "6ZusE3hPO_sGETGPhzgM_e7roZg");
+            new TelegramBotClient(ConfigurationManager.AppSettings["BotToken"]);
 
         private readonly HtmlToPdf _converterHtmlToPdf;
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
@@ -28,6 +28,7 @@ namespace kpfu_schedule.Tools
         {
             try
             {
+                var currentConfig = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
                 var group = "";
                 using (var db = new TgUsersContext())
                 {
@@ -38,7 +39,7 @@ namespace kpfu_schedule.Tools
                 doc.Save($"tmpPdf/{chatId}.pdf");
                 var fs = new MemoryStream(File.ReadAllBytes($"tmpPdf/{chatId}.pdf"));
                 var fileToSend = new FileToSend($"Расписание.pdf", fs);
-                await Bot.SendDocumentAsync(chatId, fileToSend);
+                await Bot.SendDocumentAsync(chatId, fileToSend, $"Номер недели: {currentConfig.AppSettings.Settings["WeekNumber"].Value}, тип: {currentConfig.AppSettings.Settings["WeekType"].Value}");
                 var file = new FileInfo($"tmpPdf/{chatId}.pdf");
                 file.Delete();
             }

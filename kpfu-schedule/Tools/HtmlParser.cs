@@ -29,10 +29,26 @@ namespace kpfu_schedule.Tools
                     row.ChildNodes.Add(tmp[1]);
                 }
             }
-            return doc.DocumentNode.InnerHtml.Replace("width:956px;", string.Empty)
-                .Replace("td{ width:143px;}", "td{ width:600px;}").Replace("font-size: 10px;", "font-size: 24px; ")
+
+            var outputHtml = doc.DocumentNode.InnerHtml
+                .Replace("width:956px;", string.Empty)
+                .Replace("td{ width:143px;}", "td{ width:600px;}")
+                .Replace("font-size: 10px;", "font-size: 24px; ")
                 .Replace("font-size: 13px;", "font-size: 24px;")
                 .Replace(".small_td{ width:100px;}", ".small_td{ width:200px;}");
+            outputHtml = Rename(outputHtml);
+            return outputHtml;
+        }
+
+        private string Rename(string input)
+        {
+            input = input
+                .Replace("Учебное здание №14", "2 высотный корпус")
+                .Replace("Учебное здание №12", "здание физфака")
+                .Replace("Учебное здание №1", "главное здание")
+                .Replace("Учебное здание №16", "институт химии")
+                .Replace("Учебное здание №18", "АГМУ");
+            return input;
         }
     }
 }

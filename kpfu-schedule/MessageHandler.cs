@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.Data.Entity;
 using System.Net.Http;
 using System.Text.RegularExpressions;
@@ -15,7 +16,7 @@ namespace kpfu_schedule
     public class MessageHandler
     {
         private static readonly TelegramBotClient Bot =
-            new TelegramBotClient("444905366:AAG9PlFd6ZusE3hPO_sGETGPhzgM_e7roZg");
+            new TelegramBotClient(ConfigurationManager.AppSettings["BotToken"]);
 
         private static HttpClient _httpClient;
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
@@ -60,8 +61,8 @@ namespace kpfu_schedule
                     _imageGenerator.GetWeek(message.Chat.Id);
                     break;
                 default:
-                    var regex = new Regex(@"^\d{2}.?.?-\d{3}$");
-                    if (regex.IsMatch(message.Text))
+                    //var regex = new Regex(@"^\d{2}.?.?-\d{3}$");
+                    if (message.Text.Contains("-"))
                     {
                         VerificationAnswer(message.Text, message.Chat.Id);
                     }

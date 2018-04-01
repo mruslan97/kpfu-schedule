@@ -12,11 +12,17 @@ namespace kpfu_schedule.Jobs
             var scheduler = StdSchedulerFactory.GetDefaultScheduler();
             scheduler.Start();
             var job = JobBuilder.Create<ScheduleUpdater>().Build();
+            var weekJob = JobBuilder.Create<WeeksUpdater>().Build();
+            var weekTrigger = TriggerBuilder.Create()
+                .WithIdentity("weekTrigger", "weekGroup")
+                .WithSchedule(CronScheduleBuilder.WeeklyOnDayAndHourAndMinute(DayOfWeek.Monday, 0, 0))
+                .Build();
             var trigger = TriggerBuilder.Create()
                 .WithIdentity("trigger1", "group1")
-                .WithSchedule(CronScheduleBuilder.DailyAtHourAndMinute(00,00))
+                .WithSchedule(CronScheduleBuilder.DailyAtHourAndMinute(15,18))
                 .Build();
             scheduler.ScheduleJob(job, trigger);
+            //scheduler.ScheduleJob(weekJob,weekTrigger);
         }
     }
 }

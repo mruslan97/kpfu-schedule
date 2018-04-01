@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.Data.Entity;
 using System.Drawing.Imaging;
 using System.IO;
@@ -15,8 +16,7 @@ namespace kpfu_schedule.Tools
     public class ImageGenerator
     {
         private static readonly TelegramBotClient Bot =
-            new TelegramBotClient("444905366:AAG9PlFd" +
-                                  "6ZusE3hPO_sGETGPhzgM_e7roZg");
+            new TelegramBotClient(ConfigurationManager.AppSettings["BotToken"]);
 
         private readonly HtmlToImage _converterHtmlToImage;
         private readonly HtmlParser _htmlParser;
@@ -38,6 +38,7 @@ namespace kpfu_schedule.Tools
                     await Bot.SendTextMessageAsync(chatId, "Выходной день");
                     return;
                 }
+
                 day = isToday ? day : day + 1;
                 var group = "";
                 using (var db = new TgUsersContext())
@@ -45,6 +46,7 @@ namespace kpfu_schedule.Tools
                     var user = await db.Users.SingleOrDefaultAsync(u => u.ChatId == chatId);
                     group = user.Group;
                 }
+
                 if (!File.Exists($"tmpPng/{group}{isToday}.png"))
                 {
                     var httpClient = new HttpClient();
@@ -56,6 +58,7 @@ namespace kpfu_schedule.Tools
                     image.Save($"tmpPng/{group}{isToday}.png", ImageFormat.Png);
                     image.Dispose();
                 }
+
                 var fs = new MemoryStream(File.ReadAllBytes($"tmpPng/{group}{isToday}.png"));
                 var fileToSend = new FileToSend($"Расписание.png", fs);
                 await Bot.SendPhotoAsync(chatId, fileToSend);
@@ -70,12 +73,14 @@ namespace kpfu_schedule.Tools
         {
             try
             {
+                var currentConfig = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
                 var group = "";
                 using (var db = new TgUsersContext())
                 {
                     var user = await db.Users.SingleOrDefaultAsync(u => u.ChatId == chatId);
                     group = user.Group;
                 }
+
                 if (!File.Exists($"tmpPng/{group}week.png"))
                 {
                     var image = _converterHtmlToImage.ConvertUrl(
@@ -83,9 +88,11 @@ namespace kpfu_schedule.Tools
                     image.Save($"tmpPng/{group}week.png", ImageFormat.Png);
                     image.Dispose();
                 }
+
                 var fs = new MemoryStream(File.ReadAllBytes($"tmpPng/{group}week.png"));
                 var fileToSend = new FileToSend($"Расписание.png", fs);
-                await Bot.SendPhotoAsync(chatId, fileToSend);
+                await Bot.SendPhotoAsync(chatId, fileToSend,
+                    $"Номер недели: {currentConfig.AppSettings.Settings["WeekNumber"].Value}, тип: {currentConfig.AppSettings.Settings["WeekType"].Value}");
             }
             catch (Exception e)
             {
@@ -94,4 +101,3 @@ namespace kpfu_schedule.Tools
         }
     }
 }
-

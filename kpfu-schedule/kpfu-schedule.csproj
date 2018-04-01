@@ -134,6 +134,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Jobs\WeeksUpdater.cs" />
     <Compile Include="Tools\Cache.cs" />
     <Compile Include="Tools\ImageGenerator.cs" />
     <Compile Include="Migrations\201801162335044_DbInitial.cs" />
