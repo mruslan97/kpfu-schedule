@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using Quartz;
+using Quartz.Collection;
 using Quartz.Impl;
 using Quartz.Impl.Calendar;
 
@@ -19,10 +21,10 @@ namespace kpfu_schedule.Jobs
                 .Build();
             var trigger = TriggerBuilder.Create()
                 .WithIdentity("trigger1", "group1")
-                .WithSchedule(CronScheduleBuilder.DailyAtHourAndMinute(15,18))
+                .WithSchedule(CronScheduleBuilder.DailyAtHourAndMinute(00,00))
                 .Build();
             scheduler.ScheduleJob(job, trigger);
-            //scheduler.ScheduleJob(weekJob,weekTrigger);
+            scheduler.ScheduleJob(weekJob,weekTrigger);
         }
     }
 }
