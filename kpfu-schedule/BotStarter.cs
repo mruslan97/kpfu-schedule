@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Configuration;
-using System.Linq;
 using System.Threading.Tasks;
 using kpfu_schedule.Jobs;
-using kpfu_schedule.Models;
 using NLog;
 using Telegram.Bot;
 using Telegram.Bot.Args;
@@ -20,18 +18,14 @@ namespace kpfu_schedule
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
         private static void Main(string[] args)
-        {
-            var db = new TgUsersContext();
-            var users = db.Users.ToList();
-            Console.WriteLine($" юзеров {users.Count}");
-            Console.WriteLine("ОК");
-            //UpdateScheduler.Start();
-            //Bot.OnMessage += BotOnMessageReceived;
-            //Bot.OnMessageEdited += BotOnMessageReceived;
-            //Bot.OnReceiveError += BotOnReceiveError;
-            //Bot.StartReceiving();
-            //Console.ReadLine();
-            //Bot.StopReceiving();
+        {           
+            UpdateScheduler.Start();
+            Bot.OnMessage += BotOnMessageReceived;
+            Bot.OnMessageEdited += BotOnMessageReceived;
+            Bot.OnReceiveError += BotOnReceiveError;
+            Bot.StartReceiving();
+            Console.ReadLine();
+            Bot.StopReceiving();
         }
 
         private static async void BotOnMessageReceived(object sender, MessageEventArgs messageEventArgs)
