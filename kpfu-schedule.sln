@@ -5,6 +5,10 @@ VisualStudioVersion = 15.0.27004.2005
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "kpfu-schedule", "kpfu-schedule\kpfu-schedule.csproj", "{5F016EE1-AFAA-4F1B-81C5-9DC589921C71}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Telegram.Bot.Framework", "Telegram.Bot.Framework\Telegram.Bot.Framework.csproj", "{1536E834-AD38-4D3A-8A3E-E1256CD0B3CE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotHost", "BotHost\BotHost.csproj", "{30D09DAC-9875-4EF3-B9A6-62370A52F77E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,9 +16,16 @@ Global
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{5F016EE1-AFAA-4F1B-81C5-9DC589921C71}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5F016EE1-AFAA-4F1B-81C5-9DC589921C71}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5F016EE1-AFAA-4F1B-81C5-9DC589921C71}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5F016EE1-AFAA-4F1B-81C5-9DC589921C71}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1536E834-AD38-4D3A-8A3E-E1256CD0B3CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1536E834-AD38-4D3A-8A3E-E1256CD0B3CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1536E834-AD38-4D3A-8A3E-E1256CD0B3CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1536E834-AD38-4D3A-8A3E-E1256CD0B3CE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{30D09DAC-9875-4EF3-B9A6-62370A52F77E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30D09DAC-9875-4EF3-B9A6-62370A52F77E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{30D09DAC-9875-4EF3-B9A6-62370A52F77E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{30D09DAC-9875-4EF3-B9A6-62370A52F77E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
