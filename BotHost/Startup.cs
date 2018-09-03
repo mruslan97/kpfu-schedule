@@ -7,6 +7,7 @@ using BotHost.Commands.Schedule;
 using BotHost.Models;
 using BotHost.Quartz;
 using BotHost.Tools;
+using BotHost.Vk;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -52,6 +53,7 @@ namespace BotHost
             services.AddTransient<ImageGenerator>();
             services.AddTransient<PdfGenerator>();
             services.AddTransient<Cache>();
+            services.AddTransient<MessageKeyboardBuilder>();
             services.AddQuartz(typeof(ScheduledJob));
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
             services.AddTelegramBot<KpfuScheduleBot>(_configuration.GetSection("ScheduleBot"))
@@ -78,42 +80,34 @@ namespace BotHost
 
             logger.LogInformation("Bot up");
 
-            if (_configuration.GetSection("UseWebHook").Get<bool>())
-            {
-                app.UseTelegramBotWebhook<KpfuScheduleBot>();
-            }
-            else
-            {
-                Task.Factory.StartNew(async () =>
-                {
-                    var botManager = app.ApplicationServices.GetRequiredService<IBotManager<KpfuScheduleBot>>();
-                    await botManager.SetWebhookStateAsync(false);
-                    while (true)
-                    {
-                        try
-                        {
-                            await botManager.GetAndHandleNewUpdatesAsync();
-                        }
-                        catch (Exception e)
-                        {
-                            logger.LogError($"Exception: {e}");
-                        }
-                    }
-                }).ContinueWith(t =>
-                {
-                    if (t.IsFaulted) throw t.Exception;
-                });
-            }
+            //if (_configuration.GetSection("UseWebHook").Get<bool>())
+            //{
+            //    app.UseTelegramBotWebhook<KpfuScheduleBot>();
+            //}
+            //else
+            //{
+            //    Task.Factory.StartNew(async () =>
+            //    {
+            //        var botManager = app.ApplicationServices.GetRequiredService<IBotManager<KpfuScheduleBot>>();
+            //        await botManager.SetWebhookStateAsync(false);
+            //        while (true)
+            //        {
+            //            try
+            //            {
+            //                await botManager.GetAndHandleNewUpdatesAsync();
+            //            }
+            //            catch (Exception e)
+            //            {
+            //                logger.LogError($"Exception: {e}");
+            //            }
+            //        }
+            //    }).ContinueWith(t =>
+            //    {
+            //        if (t.IsFaulted) throw t.Exception;
+            //    });
+            //}
             logger.LogInformation("Set up bot to notifier");
-            //set up bot for notifier to fix DI-loop
-            //var notifier = (Notificator)app.ApplicationServices.GetRequiredService<INotifiactionSender>();
-            //notifier.Bot = app.ApplicationServices.GetRequiredService<ItisScheduleBot>();
-            //run scheduled updates
             logger.LogInformation("Run schedules updating");
-            //updates = new UpdatesScheduler(app.ApplicationServices);
-            //updates.Start();
-
-            //app.Run(async (context) => { });
             app.UseQuartz();
             app.UseMvc();
             logger.LogInformation("Configuration ended");

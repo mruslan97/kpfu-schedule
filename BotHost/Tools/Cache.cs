@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
@@ -38,16 +39,21 @@ namespace BotHost.Tools
 
         public async Task Update()
         {
-            _logger.LogTrace("Start cache update");
+            _logger.LogInformation("Start cache update");
+            var stopWatch = new Stopwatch();
+            stopWatch.Start();
             var directoryInfo = new DirectoryInfo(_imagesDirectory);
             directoryInfo.GetFiles().ToList().ForEach(f => f.Delete());
             directoryInfo = new DirectoryInfo(_pdfDirectory);
             directoryInfo.GetFiles().ToList().ForEach(f => f.Delete());
-            var groups = _usersContext.TgUsers.Select(u => u.Group).Where(g => g != null).Distinct().ToList();
+            var tgGroups = _usersContext.TgUsers.Select(u => u.Group).Where(g => g != null).Distinct().ToList();
+            var vkGroups = _usersContext.VkUsers.Select(u => u.Group).Where(g => g != null).Distinct().ToList();
+            var groups = vkGroups.Union(tgGroups);
             var day = Convert.ToInt32(DateTime.Today.DayOfWeek);
             foreach (var group in groups)
                 await UpdateGroup(group, day);
-            _logger.LogTrace("Cache update successful");
+            stopWatch.Stop();
+            _logger.LogInformation($"Cache update successful, time elapsed {stopWatch.Elapsed}");
         }
 
         private async Task UpdateGroup(string group, int day)

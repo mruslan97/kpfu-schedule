@@ -9,6 +9,7 @@ namespace BotHost.Models
     public class UsersContext : DbContext
     {
         public DbSet<TgUser> TgUsers { get; set; }
+        public DbSet<VkUser> VkUsers { get; set; }
 
         public UsersContext(DbContextOptions<UsersContext> options) 
             : base(options)

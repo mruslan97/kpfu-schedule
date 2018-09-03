@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using BotHost.Commands.CommandsArgs;
 using BotHost.Models;
 using BotHost.Tools;
+using Microsoft.EntityFrameworkCore;
 using Telegram.Bot.Framework;
 using Telegram.Bot.Framework.Abstractions;
 using Telegram.Bot.Types;
@@ -15,9 +16,12 @@ namespace BotHost.Commands.Schedule
     public class TodayCommand : CommandBase<DefaultCommandArgs>
     {
         private ImageGenerator _imageGenerator;
-        public TodayCommand(ImageGenerator imageGenerator) : base(name: "today")
+        private UsersContext _usersContext;
+
+        public TodayCommand(ImageGenerator imageGenerator, UsersContext usersContext) : base(name: "today")
         {
             _imageGenerator = imageGenerator;
+            _usersContext = usersContext;
         }
         protected override bool CanHandleCommand(Update update)
         {
@@ -30,7 +34,8 @@ namespace BotHost.Commands.Schedule
 
         public override async Task<UpdateHandlingResult> HandleCommand(Update update, DefaultCommandArgs args)
         {
-            var image = await _imageGenerator.GetDay(update.Message.Chat.Id, true);
+            var user = await _usersContext.TgUsers.SingleOrDefaultAsync(u => u.ChatId == update.Message.Chat.Id);
+            var image = await _imageGenerator.GetDay(user.Group, true);
             if (image == null)
             {
                 await Bot.Client.SendTextMessageAsync(update.Message.Chat.Id, "Выходной день");

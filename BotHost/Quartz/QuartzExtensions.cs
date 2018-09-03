@@ -20,18 +20,11 @@ namespace BotHost.Quartz
                 .WithIdentity("Sample.job", "group1")
                 .Build());
 
-            services.AddSingleton<ITrigger>(provider =>
-            {
-                return TriggerBuilder.Create()
-                    .WithIdentity($"Sample.trigger", "group1")
-                    .StartNow()
-                    .WithSimpleSchedule
-                    (s =>
-                        s.WithInterval(TimeSpan.FromSeconds(5000))
-                            .RepeatForever()
-                    )
-                    .Build();
-            });
+            services.AddSingleton<ITrigger>(provider => TriggerBuilder.Create()
+                .WithIdentity($"Sample.trigger", "group1")
+                .StartNow()
+                .WithSchedule(CronScheduleBuilder.DailyAtHourAndMinute(00,00))
+                .Build());
 
             services.AddSingleton<IScheduler>(provider =>
             {

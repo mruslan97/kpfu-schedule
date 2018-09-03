@@ -23,10 +23,12 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="2.1.1.1" />
     <PackageReference Include="Quartz" Version="3.0.6" />
     <PackageReference Include="Select.HtmlToPdf.NetCore" Version="18.3.0" />
+    <PackageReference Include="VkNet" Version="1.37.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Telegram.Bot.Framework\Telegram.Bot.Framework.csproj" />
+    <ProjectReference Include="..\VkNet.BotsLongPollExtension\VkNet.BotsLongPollExtension.csproj" />
   </ItemGroup>
 
 </Project>

@@ -33,15 +33,13 @@ namespace BotHost.Tools
             _directory = Directory.GetParent(Assembly.GetExecutingAssembly().Location) + "/tmpPng";
         }
 
-        public async Task<MemoryStream> GetDay(long chatId, bool isToday)
+        public async Task<MemoryStream> GetDay(string group, bool isToday)
         {
             try
             {
                 var day = Convert.ToInt32(DateTime.Today.DayOfWeek);
                 if (day == 6 && !isToday || day == 0 && isToday) return null;
                 day = isToday ? day : day + 1;
-                var user = await _usersContext.TgUsers.SingleOrDefaultAsync(u => u.ChatId == chatId);
-                var group = user.Group;
                 if (!File.Exists($"{_directory}/{group}{isToday}.png"))
                 {
                     var httpClient = _httpClientFactory.CreateClient();
@@ -60,15 +58,13 @@ namespace BotHost.Tools
             }
             catch (Exception e)
             {
-                _logger.LogError(e, $"{e.Message} / chatId: {chatId}");
+                _logger.LogError(e, $"{e.Message}");
                 throw;
             }
         }
 
-        public async Task<InputOnlineFile> GetWeek(long chatId)
+        public async Task<MemoryStream> GetWeek(string group)
         {
-            var user = await _usersContext.TgUsers.SingleOrDefaultAsync(u => u.ChatId == chatId);
-            var group = user.Group;
             if (!File.Exists($"{_directory}/{group}week.png"))
             {
                 var image = _converterHtmlToImage.ConvertUrl(
@@ -77,8 +73,8 @@ namespace BotHost.Tools
                 image.Dispose();
             }
 
-            var fs = new MemoryStream(File.ReadAllBytes($"{_directory}/{group}week.png"));
-            return new InputOnlineFile(fs, "Расписание.png");
+            return new MemoryStream(File.ReadAllBytes($"{_directory}/{group}week.png"));
+            //return new InputOnlineFile(fs, "Расписание.png");
         }
     }
 }
