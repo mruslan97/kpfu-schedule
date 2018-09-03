@@ -16,7 +16,7 @@ namespace BotHost.Commands.Schedule
     {
         private ImageGenerator _imageGenerator;
         private UsersContext _usersContext;
-        private readonly DateTime firstEvenWeekStart = new DateTime(2018, 8, 27, 23, 59, 59, DateTimeKind.Utc);
+        private readonly DateTime firstEvenWeekStart = new DateTime(2018, 9, 3, 23, 59, 59, DateTimeKind.Utc);
         public WeekCommand(ImageGenerator imageGenerator, UsersContext usersContext) : base(name: "week")
         {
             _imageGenerator = imageGenerator;

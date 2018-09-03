@@ -1,4 +1,5 @@
-﻿using System.Net.Http;
+﻿using System;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using BotHost.Commands.CommandsArgs;
@@ -42,13 +43,17 @@ namespace BotHost.Commands
                 _logger.LogInformation($"Schedule exist, group:{group}, chatId:{update.Message.Chat.Id}");
                 return UpdateHandlingResult.Handled;
             }
-
-            //using (_usersContext)
-            //{
+            try
+            {
                 var user = await _usersContext.TgUsers.SingleOrDefaultAsync(u => u.ChatId == update.Message.Chat.Id);
                 user.Group = group;
                 await _usersContext.SaveChangesAsync();
-            //}
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"dbcontext error");
+                await Bot.Client.SendTextMessageAsync(update.Message.Chat.Id, "Ошибка сохранения, попробуй отправить еще раз");
+            }
 
             var keyboard = new ReplyKeyboardMarkup(new[]
             {

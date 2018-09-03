@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -95,13 +96,27 @@ namespace BotHost.Controllers
                 Message = $"Привет, {user.FirstName}! Введи номер своей группы в формате **-***",
                 PeerId = _groupId
             });
+            if (_usersContext.VkUsers.Find(user.Id) != null) return;
             _usersContext.VkUsers.Add(new VkUser
             {
                 UserId = user.Id,
                 FirstName = user.FirstName,
                 LastName = user.LastName
             });
-            await _usersContext.SaveChangesAsync();
+            try
+            {
+                await _usersContext.SaveChangesAsync();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"dbcontext exception");
+                _vkApi.Messages.Send(new MessagesSendParams
+                {
+                    UserId = user.Id,
+                    Message = $"Ошибка сохранения, попробуй отправить заново",
+                    PeerId = _groupId
+                });
+            }
         }
 
         private async Task VerificationAnswer(GroupUpdate groupUpdate)

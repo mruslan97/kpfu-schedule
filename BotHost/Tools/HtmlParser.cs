@@ -35,7 +35,8 @@ namespace BotHost.Tools
                 .Replace("td{ width:143px;}", "td{ width:600px;}")
                 .Replace("font-size: 10px;", "font-size: 24px; ")
                 .Replace("font-size: 13px;", "font-size: 24px;")
-                .Replace(".small_td{ width:100px;}", ".small_td{ width:200px;}");
+                .Replace(".small_td{ width:100px;}", ".small_td{ width:200px;}")
+                .Replace(@"<tr bgcolor=""#ffffff""></tr>","");
             outputHtml = Rename(outputHtml);
             return outputHtml;
         }
