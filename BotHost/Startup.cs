@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using BotHost.Commands;
 using BotHost.Commands.Schedule;
@@ -10,14 +8,11 @@ using BotHost.Tools;
 using BotHost.Vk;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Quartz;
 using SelectPdf;
 using Telegram.Bot.Framework;
 using Telegram.Bot.Framework.Abstractions;
@@ -26,13 +21,14 @@ namespace BotHost
 {
     public class Startup
     {
-        private IConfigurationRoot _configuration;
+        private readonly IConfigurationRoot _configuration;
+
         public Startup(IHostingEnvironment env)
         {
             var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
+                .AddJsonFile("appsettings.json", false, true)
+                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true)
                 .AddEnvironmentVariables();
 
             _configuration = builder.Build();
@@ -73,43 +69,36 @@ namespace BotHost
             ILogger logger = loggerFactory.CreateLogger<Startup>();
             logger.LogInformation("Configuration started");
             logger.LogInformation($"Env: {env.EnvironmentName}");
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
+            if (env.IsDevelopment()) app.UseDeveloperExceptionPage();
 
             logger.LogInformation("Bot up");
 
-            //if (_configuration.GetSection("UseWebHook").Get<bool>())
-            //{
-            //    app.UseTelegramBotWebhook<KpfuScheduleBot>();
-            //}
-            //else
-            //{
-            //    Task.Factory.StartNew(async () =>
-            //    {
-            //        var botManager = app.ApplicationServices.GetRequiredService<IBotManager<KpfuScheduleBot>>();
-            //        await botManager.SetWebhookStateAsync(false);
-            //        while (true)
-            //        {
-            //            try
-            //            {
-            //                await botManager.GetAndHandleNewUpdatesAsync();
-            //            }
-            //            catch (Exception e)
-            //            {
-            //                logger.LogError($"Exception: {e}");
-            //            }
-            //        }
-            //    }).ContinueWith(t =>
-            //    {
-            //        if (t.IsFaulted) throw t.Exception;
-            //    });
-            //}
+            if (_configuration.GetSection("UseTelegram").Get<bool>())
+                if (_configuration.GetSection("UseWebHook").Get<bool>())
+                    app.UseTelegramBotWebhook<KpfuScheduleBot>();
+                else
+                    Task.Factory.StartNew(async () =>
+                    {
+                        var botManager = app.ApplicationServices.GetRequiredService<IBotManager<KpfuScheduleBot>>();
+                        await botManager.SetWebhookStateAsync(false);
+                        while (true)
+                            try
+                            {
+                                await botManager.GetAndHandleNewUpdatesAsync();
+                            }
+                            catch (Exception e)
+                            {
+                                logger.LogError($"Exception: {e}");
+                            }
+                    }).ContinueWith(t =>
+                    {
+                        if (t.IsFaulted) throw t.Exception;
+                    });
             logger.LogInformation("Set up bot to notifier");
             logger.LogInformation("Run schedules updating");
             app.UseQuartz();
-            app.UseMvc();
+            if (_configuration.GetSection("UseVk").Get<bool>())
+                app.UseMvc();
             logger.LogInformation("Configuration ended");
         }
     }
