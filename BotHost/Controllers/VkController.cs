@@ -72,6 +72,9 @@ namespace BotHost.Controllers
                 case "старт":
                     HelloAnswer(groupUpdate);
                     break;
+                case "начать":
+                    HelloAnswer(groupUpdate);
+                    break;
                 case "на сегодня":
                     await GetDay(groupUpdate, true);
                     break;

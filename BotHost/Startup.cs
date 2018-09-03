@@ -72,7 +72,6 @@ namespace BotHost
             if (env.IsDevelopment()) app.UseDeveloperExceptionPage();
 
             logger.LogInformation("Bot up");
-
             if (_configuration.GetSection("UseTelegram").Get<bool>())
                 if (_configuration.GetSection("UseWebHook").Get<bool>())
                     app.UseTelegramBotWebhook<KpfuScheduleBot>();

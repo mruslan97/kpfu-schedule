@@ -5,11 +5,58 @@ namespace BotHost.Tools
 {
     public class HtmlParser
     {
+        private readonly string _cssStyles = @"body {
+            font-family: Tahoma, Verdana, Arial, Helvetica, sans-serif;
+            font-size: 14px;
+            font-weight: normal;
+            padding: 0 0 0 0;
+        }
+        
+        table {
+            color: #000000;
+            font-size: 24px;
+            font-weight: normal;
+            padding: 0 0 0 0;
+            margin: 5px 5px 5px 5px;
+            border-collapse: collapse;
+        }
+        
+        font {
+            font-size: 24px;
+        }
+        
+        td {
+            width: 600px;
+            border-top: none;
+            border-bottom: none;
+        }
+        
+        .small_td {
+            width: 98px;
+        }
+        
+        table {
+            border-right: none;
+            border-left: none;
+        }
+        
+        tr:nth-child(2n) {
+            background: #F7F7F7; !important
+        }
+        
+        tr:nth-child(2n+1) {
+            background: #dcdbdd;
+        }
+        
+        tr:first-child {
+            background: #4a76a8;
+            color: white;
+        }";
+
         public string ParseDay(string htmlPage, int day)
         {
-            var page = htmlPage;
             var doc = new HtmlDocument();
-            doc.LoadHtml(page);
+            doc.LoadHtml(htmlPage);
             var trNodes = doc.DocumentNode.SelectSingleNode("//table").ChildNodes.Where(x => x.Name == "tr");
             foreach (var row in trNodes)
             {
@@ -30,15 +77,23 @@ namespace BotHost.Tools
                 }
             }
 
+            var styles = doc.DocumentNode.SelectSingleNode("//style");
+            styles.InnerHtml = _cssStyles;
             var outputHtml = doc.DocumentNode.InnerHtml
-                .Replace("width:956px;", string.Empty)
-                .Replace("td{ width:143px;}", "td{ width:600px;}")
-                .Replace("font-size: 10px;", "font-size: 24px; ")
-                .Replace("font-size: 13px;", "font-size: 24px;")
-                .Replace(".small_td{ width:100px;}", ".small_td{ width:200px;}")
-                .Replace(@"<tr bgcolor=""#ffffff""></tr>","");
+                .Replace(@"<tr bgcolor=""#ffffff""></tr>", "")
+                .Replace(@"<td class=""small_td"" align=""center"">&nbsp;</td><td align=""center"">",
+                    @"<td colspan=""2"" align=""center"">");
             outputHtml = Rename(outputHtml);
             return outputHtml;
+        }
+
+        public string ParseWeek(string htmlPage)
+        {
+            var doc = new HtmlDocument();
+            doc.LoadHtml(htmlPage);
+            var styles = doc.DocumentNode.SelectSingleNode("//style");
+            styles.InnerHtml = _cssStyles;
+            return doc.DocumentNode.InnerHtml;
         }
 
         private string Rename(string input)

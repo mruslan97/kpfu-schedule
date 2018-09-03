@@ -67,8 +67,13 @@ namespace BotHost.Tools
         {
             if (!File.Exists($"{_directory}/{group}week.png"))
             {
-                var image = _converterHtmlToImage.ConvertUrl(
+                var httpClient = _httpClientFactory.CreateClient();
+                var bytes = await httpClient.GetByteArrayAsync(
                     $"https://kpfu.ru/week_sheadule_print?p_group_name={group}");
+                var encoding = CodePagesEncodingProvider.Instance.GetEncoding(1251);
+                var htmlPage = encoding.GetString(bytes, 0, bytes.Length);
+                var htmlDocument = _htmlParser.ParseWeek(htmlPage);
+                var image = _converterHtmlToImage.ConvertHtmlString(htmlDocument);
                 image.Save($"{_directory}/{group}week.png", ImageFormat.Png);
                 image.Dispose();
             }

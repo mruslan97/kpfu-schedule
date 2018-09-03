@@ -26,7 +26,7 @@ namespace BotHost.Commands.Schedule
         {
             if (!base.CanHandleCommand(update))
             {
-                return update.Message.Text.ToLowerInvariant().Contains("неделю");
+                return update.Message.Text.ToLowerInvariant().Equals("на неделю");
             }
             return true;
         }
