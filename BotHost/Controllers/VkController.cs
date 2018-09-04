@@ -14,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using VkNet;
+using VkNet.Abstractions;
 using VkNet.Abstractions.Utils;
 using VkNet.BotsLongPollExtension.Enums;
 using VkNet.BotsLongPollExtension.Model;
@@ -32,23 +33,19 @@ namespace BotHost.Controllers
         private PdfGenerator _pdfGenerator;
         private readonly UsersContext _usersContext;
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly VkApi _vkApi;
+        private readonly IVkApi _vkApi;
         private readonly long _groupId = 170386942;
         private readonly ILogger<VkController> _logger;
 
         public VkController(ImageGenerator imageGenerator, PdfGenerator pdfGenerator, UsersContext usersContext,
-            IHttpClientFactory httpClientFactory, ILogger<VkController> logger)
+            IHttpClientFactory httpClientFactory, ILogger<VkController> logger, IVkApi vkApi)
         {
             _logger = logger;
             _imageGenerator = imageGenerator;
             _pdfGenerator = pdfGenerator;
             _usersContext = usersContext;
             _httpClientFactory = httpClientFactory;
-            _vkApi = new VkApi(new ServiceCollection().AddSingleton<IRestClient, RestClient>());
-            _vkApi.Authorize(new ApiAuthParams
-            {
-                AccessToken = "4337f474c1961e783a6d493bfff0daf8744aa74efecc7e34b3fa84b97e4381b10db9d703f4f87c2485c4d"
-            });
+            _vkApi = vkApi;
         }
 
         [HttpPost("vkapi")]
@@ -189,13 +186,17 @@ namespace BotHost.Controllers
             var user = await _usersContext.VkUsers.SingleOrDefaultAsync(u => u.UserId == groupUpdate.UserId);
             var group = user.Group;
             var image = await _imageGenerator.GetWeek(group);
-
             var uploadServer = _vkApi.Photo.GetMessagesUploadServer(255959243);
             var response = await UploadImage(uploadServer.UploadUrl, image.ToArray());
             var photo = _vkApi.Photo.SaveMessagesPhoto(response).SingleOrDefault();
+            var weekNumber = WeeksCalculator.GetCurrentWeek();
+            var messageText = weekNumber % 2 == 0
+                ? $"Это {weekNumber}-я неделя - четная."
+                : $"Это {weekNumber}-я неделя - нечетная.";
             _vkApi.Messages.Send(new MessagesSendParams
             {
                 UserId = groupUpdate.UserId,
+                Message = messageText,
                 PeerId = _groupId,
                 Attachments = new List<MediaAttachment>(new List<MediaAttachment>
                 {

@@ -16,7 +16,6 @@ namespace BotHost.Commands.Schedule
     {
         private ImageGenerator _imageGenerator;
         private UsersContext _usersContext;
-        private readonly DateTime firstEvenWeekStart = new DateTime(2018, 9, 3, 23, 59, 59, DateTimeKind.Utc);
         public WeekCommand(ImageGenerator imageGenerator, UsersContext usersContext) : base(name: "week")
         {
             _imageGenerator = imageGenerator;
@@ -33,25 +32,19 @@ namespace BotHost.Commands.Schedule
 
         public override async Task<UpdateHandlingResult> HandleCommand(Update update, DefaultCommandArgs args)
         {
-            var diffDaysCount = (DateTime.UtcNow.Date - firstEvenWeekStart).Days;
-            diffDaysCount -= GetCurrentIndexOfDayOfWeekForEuropeanMan();
-            var weeksSpent = diffDaysCount / 7;
-            var isEven = weeksSpent % 2 == 0;
-            var messageText = isEven
-                ? $"Это {weeksSpent + 2}-я неделя - четная."
-                : $"Это {weeksSpent + 2}-я неделя - нечетная.";
+            var weekNumber = WeeksCalculator.GetCurrentWeek();
+            var messageText = weekNumber % 2 == 0
+                ? $"Это {weekNumber}-я неделя - четная."
+                : $"Это {weekNumber}-я неделя - нечетная.";
             var user = await _usersContext.TgUsers.SingleOrDefaultAsync(u => u.ChatId == update.Message.Chat.Id);
+            if (user == null)
+            {
+                await Bot.Client.SendTextMessageAsync(update.Message.Chat.Id, "Нет данных в базе, напиши номер группы");
+                return UpdateHandlingResult.Handled;
+            }
             var image = await _imageGenerator.GetWeek(user.Group);
             await Bot.Client.SendPhotoAsync(update.Message.Chat.Id, image, messageText);
             return UpdateHandlingResult.Handled;
-
-            int GetCurrentIndexOfDayOfWeekForEuropeanMan()
-            {
-                var utc = DateTime.UtcNow;
-                if (utc.DayOfWeek == DayOfWeek.Sunday)
-                    return 6;
-                return (int)(utc.DayOfWeek - 1);
-            }
         }
     }
 }

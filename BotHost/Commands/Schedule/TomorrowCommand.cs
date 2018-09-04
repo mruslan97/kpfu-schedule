@@ -33,15 +33,18 @@ namespace BotHost.Commands.Schedule
         public override async Task<UpdateHandlingResult> HandleCommand(Update update, DefaultCommandArgs args)
         {
             var user = await _usersContext.TgUsers.SingleOrDefaultAsync(u => u.ChatId == update.Message.Chat.Id);
+            if (user == null)
+            {
+                await Bot.Client.SendTextMessageAsync(update.Message.Chat.Id, "Нет данных в базе, напиши номер группы");
+                return UpdateHandlingResult.Handled;
+            }
             var image = await _imageGenerator.GetDay(user.Group, false);
             if (image == null)
             {
                 await Bot.Client.SendTextMessageAsync(update.Message.Chat.Id, "Выходной день");
                 return UpdateHandlingResult.Handled;
             }
-            //var pdfDoc = new InputOnlineFile(pdfStream, "Расписание.pdf");
             await Bot.Client.SendPhotoAsync(update.Message.Chat.Id, image);
-            //await Bot.Client.SendDocumentAsync(update.Message.Chat.Id, pdfDoc);
             return UpdateHandlingResult.Handled;
         }
     }

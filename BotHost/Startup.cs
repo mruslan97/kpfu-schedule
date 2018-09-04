@@ -16,6 +16,9 @@ using Microsoft.Extensions.Logging;
 using SelectPdf;
 using Telegram.Bot.Framework;
 using Telegram.Bot.Framework.Abstractions;
+using VkNet;
+using VkNet.Abstractions;
+using VkNet.Model;
 
 namespace BotHost
 {
@@ -40,6 +43,17 @@ namespace BotHost
         public void ConfigureServices(IServiceCollection services)
         {
             var connectionString = _configuration.GetConnectionString("DefaultConnection");
+            services.AddSingleton<IVkApi>(sp =>
+            {
+                var api = new VkApi();
+
+                api.Authorize(new ApiAuthParams
+                {
+                    AccessToken = _configuration.GetSection("VkToken").Get<string>()
+                });
+
+                return api;
+            });
             services.AddDbContext<UsersContext>(options =>
                 options.UseNpgsql(connectionString));
             services.AddHttpClient();
