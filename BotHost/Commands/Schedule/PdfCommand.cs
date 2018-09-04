@@ -31,7 +31,7 @@ namespace BotHost.Commands.Schedule
         {
             var pdfStream = await _pdfGenerator.GetPdf(update.Message.Chat.Id);                      
             var pdfDoc = new InputOnlineFile(pdfStream, "Расписание.pdf");
-            await Bot.Client.SendPhotoAsync(update.Message.Chat.Id, pdfDoc);
+            await Bot.Client.SendDocumentAsync(update.Message.Chat.Id, pdfDoc);
             return UpdateHandlingResult.Handled;
         }
     }
