@@ -56,12 +56,18 @@ namespace BotHost.Controllers
         {
             var vkResponse = new VkResponse(body);
             var groupUpdate = GroupUpdate.FromJson(vkResponse);
-            if (groupUpdate.Type == GroupLongPollUpdateType.MessageNew)
+            try
             {
-                _logger.LogInformation($"Incoming message from {groupUpdate.UserId} Text:{groupUpdate.Message.Text}");
-                await SortInputMessage(groupUpdate);
+                if (groupUpdate.Type == GroupLongPollUpdateType.MessageNew)
+                {
+                    _logger.LogInformation($"Incoming message from {groupUpdate.UserId} Text:{groupUpdate.Message.Text}");
+                    await SortInputMessage(groupUpdate);
+                }
             }
-
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"{e.Message}");
+            }
             return Ok("ok");
         }
 

@@ -18,7 +18,6 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.1.3" />
-    <PackageReference Include="NLog.Config" Version="4.5.9" />
     <PackageReference Include="NLog.Web.AspNetCore" Version="4.6.0" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="2.1.1.1" />
     <PackageReference Include="Quartz" Version="3.0.6" />
@@ -29,6 +28,12 @@
   <ItemGroup>
     <ProjectReference Include="..\Telegram.Bot.Framework\Telegram.Bot.Framework.csproj" />
     <ProjectReference Include="..\VkNet.BotsLongPollExtension\VkNet.BotsLongPollExtension.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="NLog.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>
