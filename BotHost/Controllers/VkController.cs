@@ -127,12 +127,16 @@ namespace BotHost.Controllers
             var group = groupUpdate.Message.Text;
             var isValidGroup = await CheckGroup(group);
             if (!isValidGroup)
+            {
                 _vkApi.Messages.Send(new MessagesSendParams
                 {
                     UserId = groupUpdate.UserId,
                     Message = "Нет данных для этой группы",
                     PeerId = _groupId
                 });
+                return;
+            }
+
             var user = await _usersContext.VkUsers.SingleOrDefaultAsync(u => u.UserId == groupUpdate.UserId);
             user.Group = group;
             await _usersContext.SaveChangesAsync();
