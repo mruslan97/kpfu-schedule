@@ -35,7 +35,7 @@ namespace BotHost.Commands.Schedule
             var user = await _usersContext.TgUsers.SingleOrDefaultAsync(u => u.ChatId == update.Message.Chat.Id);
             if (user == null)
             {
-                await Bot.Client.SendTextMessageAsync(update.Message.Chat.Id, "Нет данных в базе, напиши номер группы");
+                await Bot.Client.SendTextMessageAsync(update.Message.Chat.Id, "Нет данных в базе, напиши /start");
                 return UpdateHandlingResult.Handled;
             }
             var image = await _imageGenerator.GetDay(user.Group, false);

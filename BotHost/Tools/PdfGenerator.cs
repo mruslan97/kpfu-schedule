@@ -14,25 +14,20 @@ namespace BotHost.Tools
     public class PdfGenerator
     {
         private readonly HtmlToPdf _converterHtmlToPdf;
-        private readonly UsersContext _usersContext;
         private readonly ILogger<PdfGenerator> _logger;
         private readonly string _directory;
 
-        public PdfGenerator(HtmlToPdf converterHtmlToPdf,
-            UsersContext usersContext, ILogger<PdfGenerator> logger)
+        public PdfGenerator(HtmlToPdf converterHtmlToPdf, ILogger<PdfGenerator> logger)
         {
             _converterHtmlToPdf = converterHtmlToPdf;
-            _usersContext = usersContext;
             _logger = logger;
             _directory = Directory.GetParent(Assembly.GetExecutingAssembly().Location) + "/tmpPdf";
         }
 
-        public async Task<MemoryStream> GetPdf(long chatId)
+        public async Task<MemoryStream> GetPdf(string group)
         {
             try
             {
-                var user = await _usersContext.TgUsers.SingleOrDefaultAsync(u => u.ChatId == chatId);
-                var group = user.Group;
                 var doc = _converterHtmlToPdf.ConvertUrl($"https://kpfu.ru/week_sheadule_print?p_group_name={group}");
                 doc.Save($"{_directory}/{group}.pdf");
                 var fileStream = new MemoryStream(File.ReadAllBytes($"{_directory}/{group}.pdf"));
@@ -40,7 +35,7 @@ namespace BotHost.Tools
             }
             catch (Exception e)
             {
-                _logger.LogError($"{e.Message} / chatId : {chatId}");
+                _logger.LogError(e,$"{e.Message}");
                 throw;
             }
         }
