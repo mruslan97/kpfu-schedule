@@ -15,7 +15,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="VkNet" Version="1.37.0" />
+    <PackageReference Include="VkNet" Version="1.37.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Categories\" />
   </ItemGroup>
 
 </Project>

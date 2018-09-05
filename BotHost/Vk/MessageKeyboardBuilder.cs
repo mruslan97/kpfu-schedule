@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using VkNet.Enums.SafetyEnums;
 using VkNet.Model;
+using VkNet.Model.Keyboard;
 using VkNet.Utils;
 
 namespace BotHost.Vk

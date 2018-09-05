@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Quartz;
@@ -16,17 +13,17 @@ namespace BotHost.Quartz
         {
             services.Add(new ServiceDescriptor(typeof(IJob), jobType, ServiceLifetime.Transient));
             services.AddSingleton<IJobFactory, ScheduledJobFactory>();
-            services.AddSingleton<IJobDetail>(provider => JobBuilder.Create<ScheduledJob>()
+            services.AddSingleton(provider => JobBuilder.Create<ScheduledJob>()
                 .WithIdentity("Sample.job", "group1")
                 .Build());
 
-            services.AddSingleton<ITrigger>(provider => TriggerBuilder.Create()
+            services.AddSingleton(provider => TriggerBuilder.Create()
                 .WithIdentity($"Sample.trigger", "group1")
                 .StartNow()
-                .WithSchedule(CronScheduleBuilder.DailyAtHourAndMinute(00,00))
+                .WithSchedule(CronScheduleBuilder.DailyAtHourAndMinute(00, 00))
                 .Build());
 
-            services.AddSingleton<IScheduler>(provider =>
+            services.AddSingleton(provider =>
             {
                 var schedulerFactory = new StdSchedulerFactory();
                 var scheduler = schedulerFactory.GetScheduler().Result;
@@ -34,7 +31,6 @@ namespace BotHost.Quartz
                 scheduler.Start();
                 return scheduler;
             });
-
         }
 
         public static void UseQuartz(this IApplicationBuilder app)

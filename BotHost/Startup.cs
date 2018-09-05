@@ -45,7 +45,7 @@ namespace BotHost
             var connectionString = _configuration.GetConnectionString("DefaultConnection");
             services.AddSingleton<IVkApi>(sp =>
             {
-                var api = new VkApi();
+                var api = new VkApi(services);
 
                 api.Authorize(new ApiAuthParams
                 {
@@ -107,8 +107,6 @@ namespace BotHost
                     {
                         if (t.IsFaulted) throw t.Exception;
                     });
-            logger.LogInformation("Set up bot to notifier");
-            logger.LogInformation("Run schedules updating");
             app.UseQuartz();
             if (_configuration.GetSection("UseVk").Get<bool>())
                 app.UseMvc();

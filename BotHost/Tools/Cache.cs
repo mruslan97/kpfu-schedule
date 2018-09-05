@@ -90,6 +90,7 @@ namespace BotHost.Tools
 
         private void UpdateWeek(string htmlPage, string group)
         {
+            htmlPage = _htmlParser.ParseWeek(htmlPage);
             var imageWeek = _converterHtmlToImage.ConvertHtmlString(htmlPage);
             imageWeek.Save($"{_imagesDirectory}/{group}week.png", ImageFormat.Png);
             imageWeek.Dispose();

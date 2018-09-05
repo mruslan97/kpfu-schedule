@@ -16,6 +16,7 @@ namespace BotHost
         public static void Main(string[] args)
         {
             Directory.CreateDirectory(Directory.GetParent(Assembly.GetExecutingAssembly().Location) + "/logs");
+            Directory.CreateDirectory(Directory.GetParent(Assembly.GetExecutingAssembly().Location) + "/logs/messages");
             Directory.CreateDirectory(Directory.GetParent(Assembly.GetExecutingAssembly().Location) + "/tmpPng");
             Directory.CreateDirectory(Directory.GetParent(Assembly.GetExecutingAssembly().Location) + "/tmpPdf");
             CreateWebHostBuilder(args).Build().Run();
@@ -29,10 +30,6 @@ namespace BotHost
                 .UseNLog()
                 .UseStartup<Startup>()
                 .UseUrls("http://+:8443");
-            //.Build();
         }
-           
-        //.UseNLog();
-
     }
 }
