@@ -55,6 +55,7 @@ namespace BotHost.Commands
                 {
                     _logger.LogError(e, $"dbcontext error");
                     await Bot.Client.SendTextMessageAsync(update.Message.Chat.Id, "Ошибка сохранения, попробуй отправить еще раз");
+                    return UpdateHandlingResult.Handled;
                 }
 
                 var keyboard = new ReplyKeyboardMarkup(new[]
