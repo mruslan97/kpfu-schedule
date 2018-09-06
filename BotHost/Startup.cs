@@ -74,6 +74,7 @@ namespace BotHost
                 .AddUpdateHandler<WeekCommand>()
                 .AddUpdateHandler<PdfCommand>()
                 .AddUpdateHandler<HelpCommand>()
+                .AddUpdateHandler<KeyboardCommand>()
                 .Configure();
         }
 
