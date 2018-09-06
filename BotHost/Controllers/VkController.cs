@@ -140,69 +140,79 @@ namespace BotHost.Controllers
                 return;
             }
 
-            var user = await _usersContext.VkUsers.SingleOrDefaultAsync(u => u.UserId == groupUpdate.UserId);
-            user.Group = group;
-            await _usersContext.SaveChangesAsync();
-            var keyboardBuilder = new MessageKeyboardBuilder();
-            keyboardBuilder.AddButton("На сегодня", "", KeyboardButtonColor.Primary, "");
-            keyboardBuilder.Line();
-            keyboardBuilder.AddButton("На завтра", "", KeyboardButtonColor.Primary, "");
-            keyboardBuilder.Line();
-            keyboardBuilder.AddButton("На неделю", "", KeyboardButtonColor.Primary, "");
-            //keyboardBuilder.Line();
-            //keyboardBuilder.AddButton("На неделю(pdf)", "extra", KeyboardButtonColor.Default, "def type");
-            _vkApi.Messages.Send(new MessagesSendParams
+            using (var db = new UsersContext())
             {
-                UserId = groupUpdate.UserId,
-                Message =
-                    "Группа успешно сохранена. Используй кнопки или вводи команды вручную. Доступно: на сегодня, на завтра, на неделю",
-                PeerId = 170386942,
-                Keyboard = keyboardBuilder.Get()
-            });
+                var user = await _usersContext.VkUsers.SingleOrDefaultAsync(u => u.UserId == groupUpdate.UserId);
+                user.Group = group;
+                await db.SaveChangesAsync();
+                var keyboardBuilder = new MessageKeyboardBuilder();
+                keyboardBuilder.AddButton("На сегодня", "", KeyboardButtonColor.Primary, "");
+                keyboardBuilder.Line();
+                keyboardBuilder.AddButton("На завтра", "", KeyboardButtonColor.Primary, "");
+                keyboardBuilder.Line();
+                keyboardBuilder.AddButton("На неделю", "", KeyboardButtonColor.Primary, "");
+                //keyboardBuilder.Line();
+                //keyboardBuilder.AddButton("На неделю(pdf)", "extra", KeyboardButtonColor.Default, "def type");
+                _vkApi.Messages.Send(new MessagesSendParams
+                {
+                    UserId = groupUpdate.UserId,
+                    Message =
+                        "Группа успешно сохранена. Используй кнопки или вводи команды вручную. Доступно: на сегодня, на завтра, на неделю",
+                    PeerId = 170386942,
+                    Keyboard = keyboardBuilder.Get()
+                });
+            }
+            
         }
 
         private async Task GetDay(GroupUpdate groupUpdate, bool isToday)
         {
-            var user = await _usersContext.VkUsers.SingleOrDefaultAsync(u => u.UserId == groupUpdate.UserId);
-            var group = user.Group;
-            var image = await _imageGenerator.GetDay(group, isToday);
-
-            var uploadServer = _vkApi.Photo.GetMessagesUploadServer(255959243);
-            var response = await UploadImage(uploadServer.UploadUrl, image.ToArray());
-            var photo = _vkApi.Photo.SaveMessagesPhoto(response).SingleOrDefault();
-            _vkApi.Messages.Send(new MessagesSendParams
+            using (var db = new UsersContext())
             {
-                UserId = groupUpdate.UserId,
-                PeerId = _groupId,
-                Attachments = new List<MediaAttachment>(new List<MediaAttachment>
+                var user = await db.VkUsers.SingleOrDefaultAsync(u => u.UserId == groupUpdate.UserId);
+                var group = user.Group;
+                var image = await _imageGenerator.GetDay(group, isToday);
+
+                var uploadServer = _vkApi.Photo.GetMessagesUploadServer(255959243);
+                var response = await UploadImage(uploadServer.UploadUrl, image.ToArray());
+                var photo = _vkApi.Photo.SaveMessagesPhoto(response).SingleOrDefault();
+                _vkApi.Messages.Send(new MessagesSendParams
                 {
-                    photo
-                })
-            });
+                    UserId = groupUpdate.UserId,
+                    PeerId = _groupId,
+                    Attachments = new List<MediaAttachment>(new List<MediaAttachment>
+                    {
+                        photo
+                    })
+                });
+            }
         }
 
         private async Task GetWeek(GroupUpdate groupUpdate)
         {
-            var user = await _usersContext.VkUsers.SingleOrDefaultAsync(u => u.UserId == groupUpdate.UserId);
-            var group = user.Group;
-            var image = await _imageGenerator.GetWeek(group);
-            var uploadServer = _vkApi.Photo.GetMessagesUploadServer(255959243);
-            var response = await UploadImage(uploadServer.UploadUrl, image.ToArray());
-            var photo = _vkApi.Photo.SaveMessagesPhoto(response).SingleOrDefault();
-            var weekNumber = WeeksCalculator.GetCurrentWeek();
-            var messageText = weekNumber % 2 == 0
-                ? $"Это {weekNumber}-я неделя - четная."
-                : $"Это {weekNumber}-я неделя - нечетная.";
-            _vkApi.Messages.Send(new MessagesSendParams
+            using (var db = new UsersContext())
             {
-                UserId = groupUpdate.UserId,
-                Message = messageText,
-                PeerId = _groupId,
-                Attachments = new List<MediaAttachment>(new List<MediaAttachment>
+                var user = await db.VkUsers.SingleOrDefaultAsync(u => u.UserId == groupUpdate.UserId);
+                var group = user.Group;
+                var image = await _imageGenerator.GetWeek(group);
+                var uploadServer = _vkApi.Photo.GetMessagesUploadServer(255959243);
+                var response = await UploadImage(uploadServer.UploadUrl, image.ToArray());
+                var photo = _vkApi.Photo.SaveMessagesPhoto(response).SingleOrDefault();
+                var weekNumber = WeeksCalculator.GetCurrentWeek();
+                var messageText = weekNumber % 2 == 0
+                    ? $"Это {weekNumber}-я неделя - четная."
+                    : $"Это {weekNumber}-я неделя - нечетная.";
+                _vkApi.Messages.Send(new MessagesSendParams
                 {
-                    photo
-                })
-            });
+                    UserId = groupUpdate.UserId,
+                    Message = messageText,
+                    PeerId = _groupId,
+                    Attachments = new List<MediaAttachment>(new List<MediaAttachment>
+                    {
+                        photo
+                    })
+                });
+            }
         }
 
         private async Task<bool> CheckGroup(string group)

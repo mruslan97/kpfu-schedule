@@ -35,36 +35,39 @@ namespace BotHost.Commands
 
         public override async Task<UpdateHandlingResult> HandleCommand(Update update, DefaultCommandArgs args)
         {
-            var group = update.Message.Text;
-            var checkGroup = await CheckGroup(group);
-            if (!checkGroup)
+            using (var db = new UsersContext())
             {
-                await Bot.Client.SendTextMessageAsync(update.Message.Chat.Id, "Нет данных для этой группы");
-                _logger.LogInformation($"Schedule exist, group:{group}, chatId:{update.Message.Chat.Id}");
+                var group = update.Message.Text;
+                var checkGroup = await CheckGroup(group);
+                if (!checkGroup)
+                {
+                    await Bot.Client.SendTextMessageAsync(update.Message.Chat.Id, "Нет данных для этой группы");
+                    _logger.LogInformation($"Schedule exist, group:{group}, chatId:{update.Message.Chat.Id}");
+                    return UpdateHandlingResult.Handled;
+                }
+                try
+                {
+                    var user = await db.TgUsers.SingleOrDefaultAsync(u => u.ChatId == update.Message.Chat.Id);
+                    user.Group = group;
+                    await db.SaveChangesAsync();
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, $"dbcontext error");
+                    await Bot.Client.SendTextMessageAsync(update.Message.Chat.Id, "Ошибка сохранения, попробуй отправить еще раз");
+                }
+
+                var keyboard = new ReplyKeyboardMarkup(new[]
+                {
+                    new[] {new KeyboardButton("На сегодня")},
+                    new[] {new KeyboardButton("На завтра")},
+                    new[] {new KeyboardButton("На неделю")},
+                    new[] {new KeyboardButton("На неделю(pdf)")}
+                });
+                await Bot.Client.SendTextMessageAsync(update.Message.Chat.Id, $"Группа сохранена.", replyMarkup: keyboard);
+                _logger.LogTrace($"user group change:{update.Message.Chat.Id}, new group:{group}");
                 return UpdateHandlingResult.Handled;
             }
-            try
-            {
-                var user = await _usersContext.TgUsers.SingleOrDefaultAsync(u => u.ChatId == update.Message.Chat.Id);
-                user.Group = group;
-                await _usersContext.SaveChangesAsync();
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, $"dbcontext error");
-                await Bot.Client.SendTextMessageAsync(update.Message.Chat.Id, "Ошибка сохранения, попробуй отправить еще раз");
-            }
-
-            var keyboard = new ReplyKeyboardMarkup(new[]
-            {
-                new[] {new KeyboardButton("На сегодня")},
-                new[] {new KeyboardButton("На завтра")},
-                new[] {new KeyboardButton("На неделю")},
-                new[] {new KeyboardButton("На неделю(pdf)")}
-            });
-            await Bot.Client.SendTextMessageAsync(update.Message.Chat.Id, $"Группа сохранена.", replyMarkup: keyboard);
-            _logger.LogTrace($"user group change:{update.Message.Chat.Id}, new group:{group}");
-            return UpdateHandlingResult.Handled;
         }
 
         private async Task<bool> CheckGroup(string group)

@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Runtime.InteropServices.ComTypes;
+using System.Threading.Tasks;
 using BotHost.Commands.CommandsArgs;
 using BotHost.Models;
 using Microsoft.Extensions.Logging;
@@ -22,21 +23,24 @@ namespace BotHost.Commands
         {
             await Bot.Client.SendTextMessageAsync(update.Message.Chat.Id,
                 $"Привет, {update.Message.Chat.FirstName}! Введи номер своей группы в формате **-***");
-            //using (_usersContext)
-            //{
-                if (_usersContext.TgUsers.Find(update.Message.Chat.Id) != null)
+            using (var db = new UsersContext())
+            {
+                //using (_usersContext)
+                //{
+                if (db.TgUsers.Find(update.Message.Chat.Id) != null)
                     return UpdateHandlingResult.Handled;
-                _usersContext.TgUsers.Add(new TgUser
+                db.TgUsers.Add(new TgUser
                 {
                     ChatId = update.Message.Chat.Id,
                     Username = update.Message.Chat.Username,
                     FirstName = update.Message.Chat.FirstName,
                     LastName = update.Message.Chat.LastName
                 });
-                await _usersContext.SaveChangesAsync();
-            //}
-            _logger.LogTrace($"user {update.Message.Chat.Id} saved in db");
-            return UpdateHandlingResult.Handled;
+                await db.SaveChangesAsync();
+                //}
+                _logger.LogTrace($"user {update.Message.Chat.Id} saved in db");
+                return UpdateHandlingResult.Handled;
+            }
         }
     }
 }

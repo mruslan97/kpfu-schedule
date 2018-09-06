@@ -32,19 +32,23 @@ namespace BotHost.Commands.Schedule
 
         public override async Task<UpdateHandlingResult> HandleCommand(Update update, DefaultCommandArgs args)
         {
-            var weekNumber = WeeksCalculator.GetCurrentWeek();
-            var messageText = weekNumber % 2 == 0
-                ? $"Это {weekNumber}-я неделя - четная."
-                : $"Это {weekNumber}-я неделя - нечетная.";
-            var user = await _usersContext.TgUsers.SingleOrDefaultAsync(u => u.ChatId == update.Message.Chat.Id);
-            if (user == null)
+            using (var db = new UsersContext())
             {
-                await Bot.Client.SendTextMessageAsync(update.Message.Chat.Id, "Нет данных в базе, напиши /start");
+                var weekNumber = WeeksCalculator.GetCurrentWeek();
+                var messageText = weekNumber % 2 == 0
+                    ? $"Это {weekNumber}-я неделя - четная."
+                    : $"Это {weekNumber}-я неделя - нечетная.";
+                var user = await db.TgUsers.SingleOrDefaultAsync(u => u.ChatId == update.Message.Chat.Id);
+                if (user == null)
+                {
+                    await Bot.Client.SendTextMessageAsync(update.Message.Chat.Id, "Нет данных в базе, напиши /start");
+                    return UpdateHandlingResult.Handled;
+                }
+                var image = await _imageGenerator.GetWeek(user.Group);
+                await Bot.Client.SendPhotoAsync(update.Message.Chat.Id, image, messageText);
                 return UpdateHandlingResult.Handled;
             }
-            var image = await _imageGenerator.GetWeek(user.Group);
-            await Bot.Client.SendPhotoAsync(update.Message.Chat.Id, image, messageText);
-            return UpdateHandlingResult.Handled;
+            
         }
     }
 }
