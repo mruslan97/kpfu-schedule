@@ -10,16 +10,12 @@ using BotHost.Tools;
 using BotHost.Vk;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
-using VkNet;
 using VkNet.Abstractions;
-using VkNet.Abstractions.Utils;
 using VkNet.BotsLongPollExtension.Enums;
 using VkNet.BotsLongPollExtension.Model;
 using VkNet.Enums.SafetyEnums;
-using VkNet.Model;
 using VkNet.Model.Attachments;
 using VkNet.Model.RequestParams;
 using VkNet.Utils;
@@ -57,7 +53,8 @@ namespace BotHost.Controllers
             {
                 if (groupUpdate.Type == GroupLongPollUpdateType.MessageNew)
                 {
-                    _logger.LogInformation($"Incoming message from {groupUpdate.UserId} Text:{groupUpdate.Message.Text}");
+                    _logger.LogInformation(
+                        $"Incoming message from {groupUpdate.UserId} Text:{groupUpdate.Message.Text}");
                     await SortInputMessage(groupUpdate);
                 }
             }
@@ -65,6 +62,7 @@ namespace BotHost.Controllers
             {
                 _logger.LogError(e, $"{e.Message}");
             }
+
             return Ok("ok");
         }
 
@@ -95,33 +93,36 @@ namespace BotHost.Controllers
 
         private async void HelloAnswer(GroupUpdate groupUpdate)
         {
-            var user = _vkApi.Users.Get(new List<long> {(long) groupUpdate.UserId}).SingleOrDefault();
-            _vkApi.Messages.Send(new MessagesSendParams
+            using (var db = new UsersContext())
             {
-                UserId = user.Id,
-                Message = $"Привет, {user.FirstName}! Введи номер своей группы в формате **-***",
-                PeerId = _groupId
-            });
-            if (_usersContext.VkUsers.Find(user.Id) != null) return;
-            _usersContext.VkUsers.Add(new VkUser
-            {
-                UserId = user.Id,
-                FirstName = user.FirstName,
-                LastName = user.LastName
-            });
-            try
-            {
-                await _usersContext.SaveChangesAsync();
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, $"dbcontext exception");
+                var user = _vkApi.Users.Get(new List<long> {(long) groupUpdate.UserId}).SingleOrDefault();
                 _vkApi.Messages.Send(new MessagesSendParams
                 {
                     UserId = user.Id,
-                    Message = $"Ошибка сохранения, попробуй отправить заново",
+                    Message = $"Привет, {user.FirstName}! Введи номер своей группы в формате **-***",
                     PeerId = _groupId
                 });
+                if (db.VkUsers.Find(user.Id) != null) return;
+                db.VkUsers.Add(new VkUser
+                {
+                    UserId = user.Id,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName
+                });
+                try
+                {
+                    await db.SaveChangesAsync();
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, $"dbcontext exception");
+                    _vkApi.Messages.Send(new MessagesSendParams
+                    {
+                        UserId = user.Id,
+                        Message = $"Ошибка сохранения, попробуй отправить заново",
+                        PeerId = _groupId
+                    });
+                }
             }
         }
 
@@ -142,7 +143,7 @@ namespace BotHost.Controllers
 
             using (var db = new UsersContext())
             {
-                var user = await _usersContext.VkUsers.SingleOrDefaultAsync(u => u.UserId == groupUpdate.UserId);
+                var user = await db.VkUsers.SingleOrDefaultAsync(u => u.UserId == groupUpdate.UserId);
                 user.Group = group;
                 await db.SaveChangesAsync();
                 var keyboardBuilder = new MessageKeyboardBuilder();
@@ -162,7 +163,6 @@ namespace BotHost.Controllers
                     Keyboard = keyboardBuilder.Get()
                 });
             }
-            
         }
 
         private async Task GetDay(GroupUpdate groupUpdate, bool isToday)
