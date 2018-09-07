@@ -159,7 +159,7 @@ namespace BotHost.Controllers
                     UserId = groupUpdate.UserId,
                     Message =
                         "Группа успешно сохранена. Используй кнопки или вводи команды вручную. Доступно: на сегодня, на завтра, на неделю",
-                    PeerId = 170386942,
+                    PeerId = _groupId,
                     Keyboard = keyboardBuilder.Get()
                 });
             }
@@ -172,7 +172,16 @@ namespace BotHost.Controllers
                 var user = await db.VkUsers.SingleOrDefaultAsync(u => u.UserId == groupUpdate.UserId);
                 var group = user.Group;
                 var image = await _imageGenerator.GetDay(group, isToday);
-
+                if (image == null)
+                {
+                    _vkApi.Messages.Send(new MessagesSendParams
+                    {
+                        UserId = groupUpdate.UserId,
+                        Message = "Выходной день",
+                        PeerId = _groupId
+                    });
+                    return;
+                }
                 var uploadServer = _vkApi.Photo.GetMessagesUploadServer(255959243);
                 var response = await UploadImage(uploadServer.UploadUrl, image.ToArray());
                 var photo = _vkApi.Photo.SaveMessagesPhoto(response).SingleOrDefault();
