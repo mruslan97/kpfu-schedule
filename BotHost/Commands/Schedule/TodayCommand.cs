@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using BotHost.Commands.CommandsArgs;
 using BotHost.Models;
+using BotHost.Services;
+using BotHost.Services.Impl;
 using BotHost.Tools;
 using Microsoft.EntityFrameworkCore;
 using Telegram.Bot.Framework;
@@ -15,10 +17,10 @@ namespace BotHost.Commands.Schedule
 {
     public class TodayCommand : CommandBase<DefaultCommandArgs>
     {
-        private ImageGenerator _imageGenerator;
+        private IImageGenerator _imageGenerator;
         private UsersContext _usersContext;
 
-        public TodayCommand(ImageGenerator imageGenerator, UsersContext usersContext) : base(name: "today")
+        public TodayCommand(IImageGenerator imageGenerator, UsersContext usersContext) : base(name: "today")
         {
             _imageGenerator = imageGenerator;
             _usersContext = usersContext;

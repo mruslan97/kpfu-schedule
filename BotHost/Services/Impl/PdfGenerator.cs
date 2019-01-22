@@ -1,25 +1,23 @@
 ﻿using System;
 using System.IO;
-using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
 using BotHost.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SelectPdf;
-using Telegram.Bot.Types.InputFiles;
 
-namespace BotHost.Tools
+namespace BotHost.Services.Impl
 {
-    public class PdfGenerator
+    public class PdfGenerator : IPdfGenerator
     {
         private readonly HtmlToPdf _converterHtmlToPdf;
         private readonly UsersContext _usersContext;
-        private readonly ILogger<PdfGenerator> _logger;
+        private readonly ILogger<IPdfGenerator> _logger;
         private readonly string _directory;
 
         public PdfGenerator(HtmlToPdf converterHtmlToPdf,
-            UsersContext usersContext, ILogger<PdfGenerator> logger)
+            UsersContext usersContext, ILogger<IPdfGenerator> logger)
         {
             _converterHtmlToPdf = converterHtmlToPdf;
             _usersContext = usersContext;

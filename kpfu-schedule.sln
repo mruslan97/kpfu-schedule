@@ -9,6 +9,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotHost", "BotHost\BotHost.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VkNet.BotsLongPollExtension", "VkNet.BotsLongPollExtension\VkNet.BotsLongPollExtension.csproj", "{C287027B-4290-44CB-BB5F-CF83DB8BD7EF}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{A1C37785-CD04-400C-9853-F4D4CD05CB92}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Integration", "Integration\Integration.csproj", "{D2C18234-DBD4-464B-847F-B063512484A0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,9 +31,16 @@ Global
 		{C287027B-4290-44CB-BB5F-CF83DB8BD7EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C287027B-4290-44CB-BB5F-CF83DB8BD7EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C287027B-4290-44CB-BB5F-CF83DB8BD7EF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D2C18234-DBD4-464B-847F-B063512484A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D2C18234-DBD4-464B-847F-B063512484A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D2C18234-DBD4-464B-847F-B063512484A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D2C18234-DBD4-464B-847F-B063512484A0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{D2C18234-DBD4-464B-847F-B063512484A0} = {A1C37785-CD04-400C-9853-F4D4CD05CB92}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {94F23F41-1944-4BA3-AE09-F25B08468923}

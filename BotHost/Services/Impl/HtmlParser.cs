@@ -1,11 +1,11 @@
 ﻿using System.Linq;
 using HtmlAgilityPack;
 
-namespace BotHost.Tools
+namespace BotHost.Services.Impl
 {
-    public class HtmlParser
+    public class HtmlParser : IHtmlParser
     {
-        private readonly string _cssStyles = @"body {
+        private const string CssStyles = @"body {
             font-family: Tahoma, Verdana, Arial, Helvetica, sans-serif;
             font-size: 14px;
             font-weight: normal;
@@ -78,7 +78,7 @@ namespace BotHost.Tools
             }
 
             var styles = doc.DocumentNode.SelectSingleNode("//style");
-            styles.InnerHtml = _cssStyles;
+            styles.InnerHtml = CssStyles;
             var outputHtml = doc.DocumentNode.InnerHtml
                 .Replace(@"<tr bgcolor=""#ffffff""></tr>", "")
                 .Replace(@"<td class=""small_td"" align=""center"">&nbsp;</td><td align=""center"">",
@@ -92,7 +92,7 @@ namespace BotHost.Tools
             var doc = new HtmlDocument();
             doc.LoadHtml(htmlPage);
             var styles = doc.DocumentNode.SelectSingleNode("//style");
-            styles.InnerHtml = _cssStyles;
+            styles.InnerHtml = CssStyles;
             return doc.DocumentNode.InnerHtml;
         }
 

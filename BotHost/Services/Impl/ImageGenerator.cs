@@ -6,24 +6,22 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using BotHost.Models;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SelectPdf;
-using Telegram.Bot.Types.InputFiles;
 
-namespace BotHost.Tools
+namespace BotHost.Services.Impl
 {
-    public class ImageGenerator
+    public class ImageGenerator : IImageGenerator
     {
         private readonly HtmlToImage _converterHtmlToImage;
-        private readonly HtmlParser _htmlParser;
+        private readonly IHtmlParser _htmlParser;
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly ILogger<ImageGenerator> _logger;
+        private readonly ILogger<IImageGenerator> _logger;
         private readonly string _directory;
         private readonly UsersContext _usersContext;
 
-        public ImageGenerator(HtmlParser htmlParser, HtmlToImage htmlToImage, UsersContext usersContext,
-            IHttpClientFactory httpClientFactory, ILogger<ImageGenerator> logger)
+        public ImageGenerator(IHtmlParser htmlParser, HtmlToImage htmlToImage, UsersContext usersContext,
+            IHttpClientFactory httpClientFactory, ILogger<IImageGenerator> logger)
         {
             _httpClientFactory = httpClientFactory;
             _converterHtmlToImage = htmlToImage;

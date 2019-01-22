@@ -4,6 +4,8 @@ using BotHost.Commands;
 using BotHost.Commands.Schedule;
 using BotHost.Models;
 using BotHost.Quartz;
+using BotHost.Services;
+using BotHost.Services.Impl;
 using BotHost.Tools;
 using BotHost.Vk;
 using Microsoft.AspNetCore.Builder;
@@ -57,11 +59,11 @@ namespace BotHost
             services.AddDbContext<UsersContext>(options =>
                 options.UseNpgsql(connectionString));
             services.AddHttpClient();
-            services.AddTransient<HtmlParser>();
+            services.AddTransient<IHtmlParser, HtmlParser>();
+            services.AddTransient<IImageGenerator,ImageGenerator>();
+            services.AddTransient<IPdfGenerator, PdfGenerator>();
             services.AddTransient<HtmlToImage>();
             services.AddTransient<HtmlToPdf>();
-            services.AddTransient<ImageGenerator>();
-            services.AddTransient<PdfGenerator>();
             services.AddTransient<Cache>();
             services.AddTransient<MessageKeyboardBuilder>();
             services.AddQuartz(typeof(ScheduledJob));

@@ -8,6 +8,8 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using BotHost.Models;
+using BotHost.Services;
+using BotHost.Services.Impl;
 using Microsoft.Extensions.Logging;
 using SelectPdf;
 
@@ -17,14 +19,14 @@ namespace BotHost.Tools
     {
         private readonly HtmlToImage _converterHtmlToImage;
         private readonly HtmlToPdf _converterHtmlToPdf;
-        private readonly HtmlParser _htmlParser;
+        private readonly IHtmlParser _htmlParser;
         private readonly ILogger<Cache> _logger;
         private readonly string _imagesDirectory;
         private readonly string _pdfDirectory;
         private readonly UsersContext _usersContext;
         private readonly HttpClient _httpClient;
 
-        public Cache(HtmlToImage converterHtmlToImage, HtmlToPdf converterHtmlToPdf, HtmlParser htmlParser,
+        public Cache(HtmlToImage converterHtmlToImage, HtmlToPdf converterHtmlToPdf, IHtmlParser htmlParser,
             UsersContext usersContext, IHttpClientFactory httpClientFactory, ILogger<Cache> logger)
         {
             _converterHtmlToImage = converterHtmlToImage;

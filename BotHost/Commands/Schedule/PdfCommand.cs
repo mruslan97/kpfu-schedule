@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BotHost.Commands.CommandsArgs;
+using BotHost.Services;
+using BotHost.Services.Impl;
 using BotHost.Tools;
 using Telegram.Bot.Framework;
 using Telegram.Bot.Framework.Abstractions;
@@ -13,8 +15,8 @@ namespace BotHost.Commands.Schedule
 {
     public class PdfCommand : CommandBase<DefaultCommandArgs>
     {
-        private PdfGenerator _pdfGenerator;
-        public PdfCommand(PdfGenerator pdfGenerator) : base(name: "pdf")
+        private IPdfGenerator _pdfGenerator;
+        public PdfCommand(IPdfGenerator pdfGenerator) : base(name: "pdf")
         {
             _pdfGenerator = pdfGenerator;
         }

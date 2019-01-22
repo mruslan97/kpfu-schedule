@@ -6,6 +6,8 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using BotHost.Models;
+using BotHost.Services;
+using BotHost.Services.Impl;
 using BotHost.Tools;
 using BotHost.Vk;
 using Microsoft.AspNetCore.Mvc;
@@ -29,15 +31,15 @@ namespace BotHost.Controllers
     [ApiController]
     public class VkController : Controller
     {
-        private readonly ImageGenerator _imageGenerator;
-        private PdfGenerator _pdfGenerator;
+        private readonly IImageGenerator _imageGenerator;
+        private IPdfGenerator _pdfGenerator;
         private readonly UsersContext _usersContext;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IVkApi _vkApi;
         private readonly long _groupId = 170386942;
         private readonly ILogger<VkController> _logger;
 
-        public VkController(ImageGenerator imageGenerator, PdfGenerator pdfGenerator, UsersContext usersContext,
+        public VkController(IImageGenerator imageGenerator, IPdfGenerator pdfGenerator, UsersContext usersContext,
             IHttpClientFactory httpClientFactory, ILogger<VkController> logger, IVkApi vkApi)
         {
             _logger = logger;
