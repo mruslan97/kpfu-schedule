@@ -36,11 +36,11 @@ namespace BotHost.Controllers
         private readonly UsersContext _usersContext;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IVkApi _vkApi;
-        private readonly long _groupId = 170386942;
+        private readonly long _groupId;
         private readonly ILogger<VkController> _logger;
 
         public VkController(IImageGenerator imageGenerator, IPdfGenerator pdfGenerator, UsersContext usersContext,
-            IHttpClientFactory httpClientFactory, ILogger<VkController> logger, IVkApi vkApi)
+            IHttpClientFactory httpClientFactory, ILogger<VkController> logger, IVkApi vkApi, VkOptions vkOptions)
         {
             _logger = logger;
             _imageGenerator = imageGenerator;
@@ -48,6 +48,7 @@ namespace BotHost.Controllers
             _usersContext = usersContext;
             _httpClientFactory = httpClientFactory;
             _vkApi = vkApi;
+            _groupId = vkOptions.GroupId;
         }
 
         [HttpPost("vkapi")]

@@ -56,6 +56,7 @@ namespace BotHost
 
                 return api;
             });
+            services.Configure<VkOptions>(Configuration.GetSection(nameof(VkOptions)));
             services.AddDbContext<UsersContext>(options =>
                 options.UseNpgsql(connectionString));
             services.AddHttpClient();
