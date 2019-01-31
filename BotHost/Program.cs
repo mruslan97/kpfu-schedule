@@ -26,10 +26,8 @@ namespace BotHost
         {
             return new WebHostBuilder()
                 .UseContentRoot(Directory.GetCurrentDirectory())
-                .UseKestrel()
                 .UseNLog()
-                .UseStartup<Startup>()
-                .UseUrls("http://+:8443");
+                .UseStartup<Startup>();
         }
     }
 }
