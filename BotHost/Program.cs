@@ -19,15 +19,14 @@ namespace BotHost
             Directory.CreateDirectory(Directory.GetParent(Assembly.GetExecutingAssembly().Location) + "/logs/messages");
             Directory.CreateDirectory(Directory.GetParent(Assembly.GetExecutingAssembly().Location) + "/tmpPng");
             Directory.CreateDirectory(Directory.GetParent(Assembly.GetExecutingAssembly().Location) + "/tmpPdf");
-            CreateWebHostBuilder(args).Build().Run();
+            BuildWebHost(args).Run();
         }
 
-        public static IWebHostBuilder CreateWebHostBuilder(string[] args)
-        {
-            return new WebHostBuilder()
+        public static IWebHost BuildWebHost(string[] args) =>
+            WebHost.CreateDefaultBuilder(args)
+                .UseStartup<Startup>()
                 .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseNLog()
-                .UseStartup<Startup>();
-        }
+                .Build();
     }
 }

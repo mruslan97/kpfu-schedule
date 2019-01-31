@@ -26,7 +26,7 @@ namespace BotHost
 {
     public class Startup
     {
-        private readonly IConfigurationRoot _configuration;
+        private IConfiguration Configuration { get; }
 
         public Startup(IHostingEnvironment env)
         {
@@ -36,26 +36,29 @@ namespace BotHost
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true)
                 .AddEnvironmentVariables();
 
-            _configuration = builder.Build();
+            Configuration = builder.Build();
         }
 
-        public IConfiguration Configuration { get; }
+        
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+            services.AddOptions();
+            var connectionString = Configuration.GetConnectionString("DefaultConnection");
             services.AddSingleton<IVkApi>(sp =>
             {
                 var api = new VkApi(services);
 
                 api.Authorize(new ApiAuthParams
                 {
-                    AccessToken = _configuration.GetSection("VkToken").Get<string>()
+                    AccessToken = Configuration.GetSection("VkToken").Get<string>()
                 });
 
                 return api;
             });
+
+            
             services.Configure<VkOptions>(Configuration.GetSection(nameof(VkOptions)));
             services.AddDbContext<UsersContext>(options =>
                 options.UseNpgsql(connectionString));
@@ -69,7 +72,7 @@ namespace BotHost
             services.AddTransient<MessageKeyboardBuilder>();
             services.AddQuartz(typeof(ScheduledJob));
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
-            services.AddTelegramBot<KpfuScheduleBot>(_configuration.GetSection("ScheduleBot"))
+            services.AddTelegramBot<KpfuScheduleBot>(Configuration.GetSection("ScheduleBot"))
                 .AddUpdateHandler<SetupGroupCommand>()
                 .AddUpdateHandler<StartCommand>()
                 .AddUpdateHandler<TodayCommand>()
@@ -89,8 +92,8 @@ namespace BotHost
             if (env.IsDevelopment()) app.UseDeveloperExceptionPage();
 
             logger.LogInformation("Bot up");
-            if (_configuration.GetSection("UseTelegram").Get<bool>())
-                if (_configuration.GetSection("UseWebHook").Get<bool>())
+            if (Configuration.GetSection("UseTelegram").Get<bool>())
+                if (Configuration.GetSection("UseWebHook").Get<bool>())
                     app.UseTelegramBotWebhook<KpfuScheduleBot>();
                 else
                     Task.Factory.StartNew(async () =>
@@ -111,7 +114,7 @@ namespace BotHost
                         if (t.IsFaulted) throw t.Exception;
                     });
             app.UseQuartz();
-            if (_configuration.GetSection("UseVk").Get<bool>())
+            if (Configuration.GetSection("UseVk").Get<bool>())
                 app.UseMvc();
             logger.LogInformation("Configuration ended");
         }
