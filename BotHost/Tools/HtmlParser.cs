@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using HtmlAgilityPack;
 
 namespace BotHost.Tools
@@ -70,7 +71,9 @@ namespace BotHost.Tools
                 }
 
                 row.ChildNodes.Clear();
-                if (!tmp[1].InnerHtml.Contains("&nbsp;"))
+               
+                // delete empty rows
+                if (!tmp[1].InnerHtml.Equals("&nbsp;"))
                 {
                     row.ChildNodes.Add(tmp[0]);
                     row.ChildNodes.Add(tmp[1]);
