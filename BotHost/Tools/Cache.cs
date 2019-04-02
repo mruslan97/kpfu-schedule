@@ -51,49 +51,91 @@ namespace BotHost.Tools
             var groups = vkGroups.Union(tgGroups);
             var day = Convert.ToInt32(DateTime.Today.DayOfWeek);
             foreach (var group in groups)
-                await UpdateGroup(group, day);
+            {
+                try
+                {
+                    await UpdateGroup(group, day);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError($"group :{group} //{e.Message}");
+                }
+            }
+
             stopWatch.Stop();
             _logger.LogInformation($"Cache update successful, time elapsed {stopWatch.Elapsed}");
         }
 
         private async Task UpdateGroup(string group, int day)
         {
-            var bytes = await _httpClient.GetByteArrayAsync(
-                $"https://kpfu.ru/week_sheadule_print?p_group_name={group}");
-            var encoding = CodePagesEncodingProvider.Instance.GetEncoding(1251);
-            var htmlPage = encoding.GetString(bytes, 0, bytes.Length);
-            UpdateWeek(htmlPage, group);
-            UpdatePdf(htmlPage, group);
-            _converterHtmlToImage.WebPageWidth = 600;
-            if (day != 0)
-                UpdateToday(htmlPage, group, day);
-            day += 1;
-            if (day != 7)
-                UpdateTomorrow(htmlPage, group, day);
+            try
+            {
+                var bytes = await _httpClient.GetByteArrayAsync(
+                    $"https://kpfu.ru/week_sheadule_print?p_group_name={group}");
+                var encoding = CodePagesEncodingProvider.Instance.GetEncoding(1251);
+                var htmlPage = encoding.GetString(bytes, 0, bytes.Length);
+                UpdateWeek(htmlPage, group);
+                UpdatePdf(htmlPage, group);
+                _converterHtmlToImage.WebPageWidth = 600;
+                if (day != 0)
+                    UpdateToday(htmlPage, group, day);
+                day += 1;
+                if (day != 7)
+                    UpdateTomorrow(htmlPage, group, day);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"group :{group} //{e.Message}");
+            }
+            
         }
 
         private void UpdateToday(string htmlPage, string group, int day)
         {
-            var htmlToday = _htmlParser.ParseDay(htmlPage, day);
-            var imageToday = _converterHtmlToImage.ConvertHtmlString(htmlToday);
-            imageToday.Save($"{_imagesDirectory}/{group}{true}.png", ImageFormat.Png);
-            imageToday.Dispose();
+            try
+            {
+                var htmlToday = _htmlParser.ParseDay(htmlPage, day);
+                var imageToday = _converterHtmlToImage.ConvertHtmlString(htmlToday);
+                imageToday.Save($"{_imagesDirectory}/{group}{true}.png", ImageFormat.Png);
+                imageToday.Dispose();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"group :{group} //{e.Message}");
+            }
+            
         }
 
         private void UpdateTomorrow(string htmlPage, string group, int day)
         {
-            var htmlTomorrow = _htmlParser.ParseDay(htmlPage, day);
-            var imageTomorrow = _converterHtmlToImage.ConvertHtmlString(htmlTomorrow);
-            imageTomorrow.Save($"{_imagesDirectory}/{group}{false}.png", ImageFormat.Png);
-            imageTomorrow.Dispose();
+            try
+            {
+                var htmlTomorrow = _htmlParser.ParseDay(htmlPage, day);
+                var imageTomorrow = _converterHtmlToImage.ConvertHtmlString(htmlTomorrow);
+                imageTomorrow.Save($"{_imagesDirectory}/{group}{false}.png", ImageFormat.Png);
+                imageTomorrow.Dispose();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"group :{group} //{e.Message}");
+            }
+            
         }
 
         private void UpdateWeek(string htmlPage, string group)
         {
-            htmlPage = _htmlParser.ParseWeek(htmlPage);
-            var imageWeek = _converterHtmlToImage.ConvertHtmlString(htmlPage);
-            imageWeek.Save($"{_imagesDirectory}/{group}week.png", ImageFormat.Png);
-            imageWeek.Dispose();
+            try
+            {
+                htmlPage = _htmlParser.ParseWeek(htmlPage);
+                var imageWeek = _converterHtmlToImage.ConvertHtmlString(htmlPage);
+                imageWeek.Save($"{_imagesDirectory}/{group}week.png", ImageFormat.Png);
+                imageWeek.Dispose();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"group :{group} //{e.Message}");
+            }
+            
         }
 
         private void UpdatePdf(string htmlPage, string group)

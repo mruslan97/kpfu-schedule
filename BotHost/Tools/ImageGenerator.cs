@@ -37,10 +37,12 @@ namespace BotHost.Tools
         {
             try
             {
+                
+
                 var day = Convert.ToInt32(DateTime.Today.DayOfWeek);
                 if (day == 6 && !isToday || day == 0 && isToday) return null;
                 day = isToday ? day : day + 1;
-                if (!File.Exists($"{_directory}/{group}{isToday}.png"))
+                if (!File.Exists($"{_directory}/{group.Replace("/", "sl")}{isToday}.png"))
                 {
                     var httpClient = _httpClientFactory.CreateClient();
                     var bytes = await httpClient.GetByteArrayAsync(
@@ -50,6 +52,8 @@ namespace BotHost.Tools
                     var htmlDocument = _htmlParser.ParseDay(htmlPage, day);
                     _converterHtmlToImage.WebPageWidth = 600;
                     var image = _converterHtmlToImage.ConvertHtmlString(htmlDocument);
+                    // TODO need fix
+                    group = group.Replace("/", "sl");
                     image.Save($"{_directory}/{group}{isToday}.png", ImageFormat.Png);
                     image.Dispose();
                 }
