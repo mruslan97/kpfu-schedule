@@ -43,12 +43,19 @@ namespace Telegram.Bot.Framework
         /// <returns><value>true</value> if this handler should get the update; otherwise <value>false</value></returns>
         public virtual bool CanHandleUpdate(IBot bot, Update update)
         {
-            Bot = Bot ?? bot;
+            try
+            {
+                Bot = Bot ?? bot;
 
-            bool isTextMessage = new[] {update.Message?.Type, update.EditedMessage?.Type}
-                .Contains(MessageType.Text);
+                bool isTextMessage = new[] {update.Message?.Type, update.EditedMessage?.Type}
+                    .Contains(MessageType.Text);
 
-            return isTextMessage && CanHandleCommand(update);
+                return isTextMessage && CanHandleCommand(update);
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
         }
 
         /// <summary>
